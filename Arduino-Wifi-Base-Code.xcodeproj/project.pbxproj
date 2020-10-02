@@ -6,10 +6,25 @@
 	objectVersion = 50;
 	objects = {
 
+/* Begin PBXFileReference section */
+		2A1D31DC25279ED9005AAC71 /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
+		2A1D31DD25279ED9005AAC71 /* ESP-Serial-Documentation.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "ESP-Serial-Documentation.txt"; sourceTree = "<group>"; };
+		2A1D31DE25279ED9005AAC71 /* index1.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index1.html; sourceTree = "<group>"; };
+		2A1D31DF25279ED9005AAC71 /* init */ = {isa = PBXFileReference; lastKnownFileType = folder; path = init; sourceTree = "<group>"; };
+		2A1D31E025279ED9005AAC71 /* UART2 */ = {isa = PBXFileReference; lastKnownFileType = folder; path = UART2; sourceTree = "<group>"; };
+		2A1D31E125279ED9005AAC71 /* ESP */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ESP; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
 /* Begin PBXGroup section */
 		2A1D31D525279E1C005AAC71 = {
 			isa = PBXGroup;
 			children = (
+				2A1D31E125279ED9005AAC71 /* ESP */,
+				2A1D31DD25279ED9005AAC71 /* ESP-Serial-Documentation.txt */,
+				2A1D31DC25279ED9005AAC71 /* index.html */,
+				2A1D31DE25279ED9005AAC71 /* index1.html */,
+				2A1D31DF25279ED9005AAC71 /* init */,
+				2A1D31E025279ED9005AAC71 /* UART2 */,
 			);
 			sourceTree = "<group>";
 		};
