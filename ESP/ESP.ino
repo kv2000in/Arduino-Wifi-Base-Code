@@ -7,16 +7,23 @@
 #include <ESP8266mDNS.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
-#include <ESP8266WiFiMulti.h>
+//#include <ESP8266WiFiMulti.h>
 
-ESP8266WiFiMulti WiFiMulti;
+//ESP8266WiFiMulti WiFiMulti;
 
 #define MAX_STRING_LEN  32
+#ifndef APSSID
+#define APSSID "myRover"
+#define APPSK  "revoRym123"
+#endif
+
+/* Set these to your desired credentials. */
+const char *ssid = APSSID;
+const char *password = APPSK;
 
 ESP8266WebServer server(80);
 WebSocketsServer webSocket = WebSocketsServer(8000);
-const char *ssid = "**";
-const char *password = "**";
+
 
 unsigned long previousMillis = 0;        // will store last time LED was updated
 
@@ -414,22 +421,22 @@ function returntoZero(){
 
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length)
 {
-  Serial1.printf("webSocketEvent(%d, %d, ...)\r\n", num, type);
+  Serial.printf("webSocketEvent(%d, %d, ...)\r\n", num, type);
   switch(type) {
     case WStype_DISCONNECTED:
-      Serial1.printf("[%u] Disconnected!\r\n", num);
+      Serial.printf("[%u] Disconnected!\r\n", num);
       break;
     case WStype_CONNECTED:
       {
         IPAddress ip = webSocket.remoteIP(num);
-        Serial1.printf("[%u] Connected from %d.%d.%d.%d url: %s\r\n", num, ip[0], ip[1], ip[2], ip[3], payload);
+        Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\r\n", num, ip[0], ip[1], ip[2], ip[3], payload);
       //itoa( cm, str, 10 );
       //  webSocket.sendTXT(num, str, strlen(str));
       }
       break;
     case WStype_TEXT:
     {
-      //Serial1.printf("[%u] get Text: %s\r\n", num, payload);
+      //Serial.printf("[%u] get Text: %s\r\n", num, payload);
 
       //Payload will be in the form of 3 alphapets and 3 digits
       //DATA-105 means it is Data and value is 105
@@ -443,8 +450,8 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
       
       if (strcmp(split1,"COMMAND") == 0)
         {
-          //Serial1.println("Received Command");
-          //Serial1.println(split2);
+          //Serial.println("Received Command");
+          //Serial.println(split2);
           if (strcmp(split2,"ZERO") == 0){
 
           } else if (strcmp(split2,"STARTSAVE") == 0){
@@ -486,18 +493,18 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
         } 
       else if (strcmp(split1,"TIME") == 0)
         {
-          //Serial1.println("Received TimeStamp");
-          //Serial1.println(split2);
+          //Serial.println("Received TimeStamp");
+          //Serial.println(split2);
           timestamp=atol(split2);
           //currTime=split2;
           currESPSecs = millis()/1000;
-          //Serial1.println(timestamp);
-          //Serial1.println(currESPSecs);
+          //Serial.println(timestamp);
+          //Serial.println(currESPSecs);
         }
       else 
       {
-          Serial1.printf("Unknown-");
-          Serial1.printf("[%u] get Text: %s\r\n", num, payload);
+          Serial.printf("Unknown-");
+          Serial.printf("[%u] get Text: %s\r\n", num, payload);
           // send data to all connected clients
           //webSocket.broadcastTXT(payload, length);
         //Send commands coming via websocket to atmega
@@ -505,26 +512,34 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
       }
     }
     // clientHeight=atoi((const char *)payload);
-     // Serial1.println((const char *)payload);
+     // Serial.println((const char *)payload);
      // itoa( cm, str, 10 );
       // webSocket.sendTXT(0, str, strlen(str));
       break;
     case WStype_BIN:
-      Serial1.printf("[%u] get binary length: %u\r\n", num, length);
+      Serial.printf("[%u] get binary length: %u\r\n", num, length);
       hexdump(payload, length);
 
       // echo data back to browser
       webSocket.sendBIN(num, payload, length);
       break;
     default:
-      Serial1.printf("Invalid WStype [%d]\r\n", type);
+      Serial.printf("Invalid WStype [%d]\r\n", type);
       break;
   }
 }
 
 void handleRoot()
 {
-  server.send_P(200, "text/html", INDEX_HTML);
+   server.send(200, "text/html", "try index.html");
+   
+}
+void handleIndex()
+{
+  //server.send_P(200, "text/html", INDEX_HTML);
+   server.sendHeader("Cache-Control","max-age=604800");
+   server.send(200, "text/html", INDEX_HTML);
+   
 }
 
 void handleNotFound()
@@ -619,12 +634,12 @@ void recvWithStartEndMarkers() {
 
 void showNewData() {
     if (newData == true) {
-        Serial1.print("This just in ... ");
-        Serial1.println(receivedChars);
-        Serial1.print("DIRECTION=");
-        Serial1.println(DIR);
-        Serial1.print("VALUE=");
-        Serial1.println(VALUE);
+        Serial.print("This just in ... ");
+        Serial.println(receivedChars);
+        Serial.print("DIRECTION=");
+        Serial.println(DIR);
+        Serial.print("VALUE=");
+        Serial.println(VALUE);
         newData = false;
     }
 }
@@ -655,27 +670,28 @@ void setup()
   Serial.begin(57600);
   //Serial1.setDebugOutput(true);
 
-  Serial1.println();
-  Serial1.println();
-  Serial1.println();
+  Serial.println();
+  Serial.println();
+  Serial.println();
 
   for(uint8_t t = 4; t > 0; t--) {
-    Serial1.printf("[SETUP] BOOT WAIT %d...\r\n", t);
-    Serial1.flush();
+    Serial.printf("[SETUP] BOOT WAIT %d...\r\n", t);
+    Serial.flush();
     delay(1000);
-   Serial.print("<f-10000>");
+   //Serial.print("<f-10000>");
   }
 /***************** AP mode*******************/
-//  Serial1.print("Configuring access point...");
-//  WiFi.softAP(ssid, password);
-//
-//  IPAddress myIP = WiFi.softAPIP();
-//  Serial1.print("AP IP address: ");
-// Serial1.println(myIP);
+  Serial.print("Configuring access point...");
+  WiFi.softAP(ssid, password);
+  WiFi.printDiag(Serial);
+  IPAddress myIP = WiFi.softAPIP();
+  Serial.print("AP IP address: ");
+  Serial.println(myIP);
   
 /***********************************************/
 
 /*****************Client Mode******************/
+ /*
   WiFiMulti.addAP(ssid, password);
 
   while(WiFiMulti.run() != WL_CONNECTED) {
@@ -688,9 +704,11 @@ void setup()
   Serial1.println(ssid);
   Serial1.print("IP address: ");
   Serial1.println(WiFi.localIP());
+  */
 /**********************************************/
   
   server.on("/", handleRoot);
+  server.on("/index.html",handleIndex);
   server.onNotFound(handleNotFound);
 //  server.onNotFound([]() {                              // If the client requests any URI
 //    if (!handleFileRead(server.uri()))                  // send it if it exists
@@ -714,6 +732,7 @@ void setup()
  /*********************************************/
  
  /* ************OTA********************* */
+  
     // Port defaults to 8266
   // ArduinoOTA.setPort(8266);
 
@@ -724,24 +743,27 @@ void setup()
   // ArduinoOTA.setPassword((const char *)"123");
    
    ArduinoOTA.onStart([]() {
-    Serial1.println("Start");
+    Serial.println("Start");
   });
   ArduinoOTA.onEnd([]() {
-    Serial1.println("\nEnd");
+    Serial.println("\nEnd");
   });
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-    Serial1.printf("Progress: %u%%\r", (progress / (total / 100)));
+    Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
   });
   ArduinoOTA.onError([](ota_error_t error) {
-    Serial1.printf("Error[%u]: ", error);
-    if (error == OTA_AUTH_ERROR) Serial1.println("Auth Failed");
-    else if (error == OTA_BEGIN_ERROR) Serial1.println("Begin Failed");
-    else if (error == OTA_CONNECT_ERROR) Serial1.println("Connect Failed");
-    else if (error == OTA_RECEIVE_ERROR) Serial1.println("Receive Failed");
-    else if (error == OTA_END_ERROR) Serial1.println("End Failed");
+    Serial.printf("Error[%u]: ", error);
+    if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
+    else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
+    else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
+    else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
+    else if (error == OTA_END_ERROR) Serial.println("End Failed");
   });
   ArduinoOTA.begin();
+
 /****************************************************/  
+ 
+  
   }
 
 

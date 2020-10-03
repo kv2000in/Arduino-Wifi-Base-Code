@@ -36,3 +36,15 @@ The detection itself does not change the baudrate, after detection it should be 
 Detection is very fast, it takes only a few incoming bytes.
 
 SerialDetectBaudrate.ino is a full example of usage.
+
+
+
+ESP-01 flash config
+
+13:59:46.707 -> Flash real id:   0014605E
+13:59:46.709 -> Flash real size: 1048576
+13:59:46.743 -> 
+13:59:46.745 -> Flash ide  size: 524288
+13:59:46.747 -> Flash ide speed: 40000000
+13:59:46.748 -> Flash ide mode:  DIO
+13:59:46.750 -> Flash Chip configuration wrong!
