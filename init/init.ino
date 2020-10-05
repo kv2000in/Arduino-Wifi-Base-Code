@@ -1,5 +1,5 @@
-#define ENCODER0PINA         2    //Atmega pin PD2/INT0 // interrupt pin (2,3 on Atmega328)
-#define ENCODER1PINA         3    //Atmega pin PD3/INT1, pin 3 also PWM paired with 11.
+//#define ENCODER0PINA         2    //Atmega pin PD2/INT0 // interrupt pin (2,3 on Atmega328)
+//#define ENCODER1PINA         3    //Atmega pin PD3/INT1, pin 3 also PWM paired with 11.
 #define pinENA               5    //Atmega pin PD5 //PWM pin, grouped with pin 6
 #define pinINA1              7    //Atmega pin PD7
 #define pinINA2              8    //Atmega pin PB0
@@ -30,6 +30,23 @@ char DIR[1] = {0};
 //char DIR = 'Z';
 long VALUE = 0;
 
+// Function to return a substring defined by a delimiter at an index
+char* subStr (char* str, char *delim, int index) {
+  char *act, *sub, *ptr;
+  static char copy[MAX_STRING_LEN];
+  int i;
+
+  // Since strtok consumes the first arg, make a copy
+  strcpy(copy, str);
+
+  for (i = 1, act = copy; i <= index; i++, act = NULL) {
+     //Serial1.print(".");
+     sub = strtok_r(act, delim, &ptr);
+     if (sub == NULL) break;
+  }
+  return sub;
+
+}
 
 void setup()
 {

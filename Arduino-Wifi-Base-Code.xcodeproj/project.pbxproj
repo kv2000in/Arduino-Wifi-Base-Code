@@ -7,12 +7,18 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		2A1D31DC25279ED9005AAC71 /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
+		2A1D31DC25279ED9005AAC71 /* index-train.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "index-train.html"; sourceTree = "<group>"; };
 		2A1D31DD25279ED9005AAC71 /* ESP-Serial-Documentation.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "ESP-Serial-Documentation.txt"; sourceTree = "<group>"; };
-		2A1D31DE25279ED9005AAC71 /* index1.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index1.html; sourceTree = "<group>"; };
+		2A1D31DE25279ED9005AAC71 /* index-height.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "index-height.html"; sourceTree = "<group>"; };
 		2A1D31DF25279ED9005AAC71 /* init */ = {isa = PBXFileReference; lastKnownFileType = folder; path = init; sourceTree = "<group>"; };
 		2A1D31E025279ED9005AAC71 /* UART2 */ = {isa = PBXFileReference; lastKnownFileType = folder; path = UART2; sourceTree = "<group>"; };
 		2A1D31E125279ED9005AAC71 /* ESP */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ESP; sourceTree = "<group>"; };
+		2A1D31E2252947DA005AAC71 /* index-opticalencoder.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "index-opticalencoder.html"; sourceTree = "<group>"; };
+		2A1D31E325294877005AAC71 /*  index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = " index.html"; sourceTree = "<group>"; };
+		2A1D31E425295578005AAC71 /* Cam_n_control.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = Cam_n_control.html; sourceTree = "<group>"; };
+		2A1D31E5252957FF005AAC71 /* pan-tilt-ws-server.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = "pan-tilt-ws-server.py"; sourceTree = "<group>"; };
+		2A1D31E6252961B3005AAC71 /* loop.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = loop.sh; sourceTree = "<group>"; };
+		2A1D31E7252961F4005AAC71 /* move.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = move.sh; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -21,8 +27,14 @@
 			children = (
 				2A1D31E125279ED9005AAC71 /* ESP */,
 				2A1D31DD25279ED9005AAC71 /* ESP-Serial-Documentation.txt */,
-				2A1D31DC25279ED9005AAC71 /* index.html */,
-				2A1D31DE25279ED9005AAC71 /* index1.html */,
+				2A1D31DC25279ED9005AAC71 /* index-train.html */,
+				2A1D31DE25279ED9005AAC71 /* index-height.html */,
+				2A1D31E2252947DA005AAC71 /* index-opticalencoder.html */,
+				2A1D31E325294877005AAC71 /*  index.html */,
+				2A1D31E425295578005AAC71 /* Cam_n_control.html */,
+				2A1D31E5252957FF005AAC71 /* pan-tilt-ws-server.py */,
+				2A1D31E6252961B3005AAC71 /* loop.sh */,
+				2A1D31E7252961F4005AAC71 /* move.sh */,
 				2A1D31DF25279ED9005AAC71 /* init */,
 				2A1D31E025279ED9005AAC71 /* UART2 */,
 			);

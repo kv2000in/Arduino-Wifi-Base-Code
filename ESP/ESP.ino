@@ -1,17 +1,9 @@
 #include <ESP8266WiFi.h>
 #include <WebSocketsServer.h>
-#include <Hash.h>
 #include <ESP8266WebServer.h>
-#include "FS.h"
 #include <string.h>
-#include <ESP8266mDNS.h>
-#include <WiFiUdp.h>
 #include <ArduinoOTA.h>
-//#include <ESP8266WiFiMulti.h>
 
-//ESP8266WiFiMulti WiFiMulti;
-
-#define MAX_STRING_LEN  32
 #ifndef APSSID
 #define APSSID "myRover"
 #define APPSK  "revoRym123"
@@ -25,506 +17,804 @@ ESP8266WebServer server(80);
 WebSocketsServer webSocket = WebSocketsServer(8000);
 
 
-unsigned long previousMillis = 0;        // will store last time LED was updated
 
-// loop delay in milli seconds
-const long interval = 2000;
+static const char PROGMEM INDEX_HTML[] = R"rawliteral(<!DOCTYPE html>
 
 
-// Function to return a substring defined by a delimiter at an index
-char* subStr (char* str, char *delim, int index) {
-  char *act, *sub, *ptr;
-  static char copy[MAX_STRING_LEN];
-  int i;
-
-  // Since strtok consumes the first arg, make a copy
-  strcpy(copy, str);
-
-  for (i = 1, act = copy; i <= index; i++, act = NULL) {
-     //Serial1.print(".");
-     sub = strtok_r(act, delim, &ptr);
-     if (sub == NULL) break;
-  }
-  return sub;
-
-}
-boolean saveData = false;
-boolean broadcast = false;   
-long duration, serverHeight; 
-int clientHeight,ZeroOffset;
-char str[8];
-unsigned long currESPSecs, currTime,timestamp, zeroTime;
-
-static const char PROGMEM INDEX_HTML[] = R"rawliteral(<!DOCTYPE HTML>
 <html>
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=2.7">
-
-  <meta  content="text/html; charset=utf-8">
-<style>
-  * {
-    box-sizing: border-box;
-}
-  
-  [class*="col-"] {
-    float: left;
-    padding: 15px;
-}
-/* For mobile phones: */
-[class*="col-"] {
-    width: 100%;
-}
-@media only screen and (min-width: 1024px) {
-    /* For desktop: */
-    .col-1 {width: 8.33%;}
-    .col-2 {width: 16.66%;}
-    .col-3 {width: 25%;}
-    .col-4 {width: 33.33%;}
-    .col-5 {width: 41.66%;}
-    .col-6 {width: 50%;}
-    .col-7 {width: 58.33%;}
-    .col-8 {width: 66.66%;}
-    .col-9 {width: 75%;}
-    .col-10 {width: 83.33%;}
-    .col-11 {width: 91.66%;}
-    .col-12 {width: 100%;}
-}
-  .switch {
-  position: relative;
-  display: inline-block;
-  width: 60px;
-  height: 34px;
-}
-.svrlight{
-  background-color: red;
-  }
-.switch input {display:none;}
-.pwrlight{
-  position: relative;
-  height: 26px;
-  width: 26px;
-  right: 20px;
-  bottom: 4px;
-  border-radius: 10%;
-  }
-.pwrlight:active{
-  background-color: red;
-  border: none;
-  }
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  -webkit-transition: .4s;
-  transition: .4s;
-}
-
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 26px;
-  width: 26px;
-  left: 4px;
-  bottom: 4px;
-  background-color: white;
-  -webkit-transition: .4s;
-  transition: .4s;
-}
-
-input:checked + .slider {
-  background-color: #2196F3;
-}
-
-input:focus + .slider {
-  box-shadow: 0 0 1px #2196F3;
-}
-
-input:checked + .slider:before {
-  -webkit-transform: translateX(26px);
-  -ms-transform: translateX(26px);
-  transform: translateX(26px);
-}
-
-/* Rounded sliders */
-.slider.round {
-  border-radius: 34px;
-}
-
-.slider.round:before {
-  border-radius: 50%;
-}
-.buttonpressedeffect {
-  display: inline-block;
-  padding: 15px 25px;
-  font-size: 24px;
-  cursor: pointer;
-  text-align: center;
-  text-decoration: none;
-  outline: none;
-  color: #fff;
-  background-color: #4CAF50;
-  border: none;
-  border-radius: 15px;
-  box-shadow: 0 9px #999;
-}
-
-.buttonpressedeffect:hover {background-color: #3e8e41}
-
-.buttonpressedeffect:active {
-  background-color: #3e8e41;
-  box-shadow: 0 5px #666;
-  transform: translateX(4px);
- }
- 
- .buttonhover {
-  display: inline-block;
-  border-radius: 4px;
-  background-color: #f4511e;
-  border: none;
-  color: #FFFFFF;
-  text-align: center;
-  font-size: 28px;
-  padding: 20px;
-  width: 200px;
-  transition: all 0.5s;
-  cursor: pointer;
-  margin: 5px;
-}
-
-.buttonhover span {
-  cursor: pointer;
-  display: inline-block;
-  position: relative;
-  transition: 0.5s;
-}
-
-.button span:after {
-  content: '\00bb';
-  position: absolute;
-  opacity: 0;
-  top: 0;
-  right: -20px;
-  transition: 0.5s;
-}
-
-.buttonhover:hover span {
-  padding-right: 25px;
-}
-
-.button:hover span:after {
-  opacity: 1;
-  right: 0;
-}
-
-</style>
-<script language="javascript" type="text/javascript">
-
- var boolConnected=false;
-  function doConnect()
-  {
-      if (!(boolConnected)){
-      /*websocket = new WebSocket(document.myform.url.value);*/
-/*
-         websocket = new WebSocket('ws://192.168.1.106:8000/');
-*/
-
-         
-    websocket = new WebSocket('ws://' + window.location.hostname + ':8000/'); 
-    boolConnected=true;
-    websocket.onopen = function(evt) { onOpen(evt) };
-    websocket.onclose = function(evt) { onClose(evt) };
-    websocket.onmessage = function(evt) { onMessage(evt) };
-    websocket.onerror = function(evt) { onError(evt) };
-  }
-
-  }
-  function onOpen(evt)
-  {
-    console.log("connected\n");
-
-  }
-
-  function onClose(evt)
-  {
-    console.log("disconnected\n");
-      /* if server disconnected - change the color to red*/
-
-      boolConnected=false;
-  }
-
-  function onMessage(evt)
-  {
-
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <style>
+        
+        body{
+          margin:0px;
+                    background: black;
+        } 
+      /*CSS for joystick*/        
+      .joystick-container 
+      {
+        display: block;
+        position: absolute;
+        right: 10%;
+        bottom: 5%;
+        z-index: 1;
+        
+      }
+      /*    CSS for Outer ring of joystick*/  
+      .outer 
+      {
+        position:relative;
+        top: 0px;
+        left: 0px;
+        border: 2px solid blueviolet;
+        align-self: center;
+        width: 250px;
+        height:250px;
+        border-radius: 250px;
+        margin:0 auto;
+      }
+      /*CSS for inner ring of joystick*/        
+      .inner 
+      {
+        position:absolute;
+        border: 0px;
+        top: 75px;
+        left: 75px;
+        background: blueviolet;
+        /*opacity: 0.2;*/
+        border: solid blueviolet;
+        width: 100px;
+        height:100px;
+        border-radius: 100px;
+      }
+      /*     CSS for refresh button when websocket closes*/
+      .refresh
+      {
+        display: none;
+      }
+      .connected 
+      {
+        display: block;
+        font-size: 40px;
+        position: fixed;
+        left:40%;
+        top:45%;
+        z-index: 1;
+        color:red;
+        
+      } 
       
-     /* Data returned from ESP will be in the form of ON-1 OFF-1 ON-2 ON-5 OFF-2 OFF-5 CHKA-1010
-      CHKA-1010 4 digits correspond to gpio reads of pin 1,2,5,6
-    evt.data.slice(-1) = "1" or "2" or "5" or "6"
-    evt.data.slice(0,-2)="ON" or "OFF" 
-      evt.data.slice(0,-5)="CHKA" 
+      /*    CSS for the MJPEG img display*/    
+      img
+      {
+        width: 100%;
+        display:block;   
+        
+      }    
+      /*       CSS for X out button*/
+      .xout
+      {
+        position: fixed;
+        top: 0%;
+        right: 0%;
+        font-size: 32px;
+        color: blueviolet;
+        z-index: 1;
+        border: 2px;
+        padding-left: 10px;
+        padding-right: 10px;
+        border-radius: 10px;
+        border-style: solid;
+        border-width: 4px;
+        border-color: blueviolet;
+        margin: 2px;
+      }
       
-      Data returned from ESP will be in the form of FOR REV STOP
-      
-      */
+      /*CSS for preset menu*/
+      .preset-menu
+      {
+        display: none;
+        position: fixed;
+        width: 50%;
+        min-width: 360px;
+        z-index: 1;
+        left: 45%;
+        top: 10%;
+      }
+      .preset-menu-visible
+      {
+        display: block; 
+        
+      }
+      /*   CSS for empty presets*/
+      .preset-menu input
+      {
+        margin: 10px;
+        border-radius: 10px;
+        border-style: solid;
+        border-width: 4px;
+        border-color: blueviolet;
+        height: 30px;
+        background: transparent;
+        width: 40%;
+        font-size: 24px;
+        padding: 1px;
+      }   
+      /* CSS for presets with values*/
+      .preset-menu [type="button"] 
+      {
+        margin: 15px;
+        border-radius: 10px;
+        border-style: solid;
+        border-width: 4px;
+        border-color: #4CAF50;
+        height: 36px;
+        width: 40%;
+        font-size: 24px;
+        padding: 0px;
+        background: slateblue;
+        opacity: 0.7;
+      } 
       
       
-    console.log("response: " + evt.data + '\n');
-      document.getElementById("mytxtarea").innerHTML = evt.data;
-        if(evt.data=="FOR"){ /* Going forward*/
-        document.getElementById("pwrlightFOR").style.backgroundColor="red";
-        document.getElementById("sw_FOR").checked=true;
-        document.getElementById("sw_REV").disabled=true;
-        };
-    if(evt.data=="REV"){ /* Going Reverse */
-        document.getElementById("pwrlightREV").style.backgroundColor="red";
-        document.getElementById("sw_REV").checked=true;
-        document.getElementById("sw_FOR").disabled=true;
-        };
-    if(evt.data=="STOP"){ /* Stopped*/
-        document.getElementById("pwrlightFOR").style.backgroundColor="black";
-        document.getElementById("pwrlightREV").style.backgroundColor="black";
-        document.getElementById("sw_FOR").disabled=false;
-        document.getElementById("sw_REV").disabled=false;
-        document.getElementById("sw_FOR").checked=false;
-        document.getElementById("sw_REV").checked=false;
-        };  
-
+      /*Generic CSS for all the buttons (pan , tilt, settings, presets)*/
+      .button
+      {
+        background-color: transparent;
+        font-size: 25px;
+        color: white;
+        padding-left: 4px;
+        padding-right: 4px;
+        border-radius: 10px;
+        border-style: solid;
+        border-width: 4px;
+        border-color: blueviolet;
+        margin: 2px;
+      }
+      /*CSS for the outer div wrapping the menus*/
+      .dropdown-wrap
+      {
+        position: absolute;
+        left: 5%;
+        bottom: 25%; 
+        display: inline-block;
+        
+      }
+      .menu-wrap
+      {
+        display: block;
+        position: absolute;
+        min-width: 360px;
+        z-index: 1;
+      } 
+      /*CSS for the "+" sign*/        
+      .menu-button1
+      {
+        background-color: transparent;
+        font-size: 25px;
+        color: white;
+        padding-left: 10px;
+        padding-right: 10px;
+        border-radius: 10px;
+        border-style: solid;
+        border-width: 4px;
+        border-color: blueviolet;
+        margin: 2px;
+      }
+      /*CSS for the "-" sign*/
+      .menu-button2
+      {
+        background-color: transparent;
+        font-size: 25px;
+        color: white;
+        padding-left: 10px;
+        padding-right: 10px;
+        border-radius: 10px;
+        border-style: solid;
+        border-width: 4px;
+        border-color: blueviolet;
+        margin: 2px;
+        /*display: none;*/
+        display: block;
+      }
+      /*Hovering over dropdown div - show the menu-wrap div*/
+      .dropdown-wrap:hover .menu-wrap
+      {
+        /*display: block;*/
+      }
+      /*Hovering over dropdown div - Hide the + button*/
+      .dropdown-wrap:hover .menu-button1
+      {
+        /*display: none;*/
+      }
+      /*Hovering over dropdown div - Show the - button in place of + button*/
+      .dropdown-wrap:hover .menu-button2
+      {
+        /* display: block;*/
+        
+      }
+      /*Hovering over dropdown div - Hide the Joystick*/
+      .dropdown-wrap:hover ~ #joystick-container 
+      {
+        /*display: none;*/
+      }
+      
+      /*Generic class to hide visibility by toggling from javascript*/
+      .hide
+      {
+        display: none;    
+      }
+      </style>
+      
+      <title>Camera</title>
+      </head>
+  <body>
+    
+<!--    <div class="refresh" id="refresh" onclick='location.reload()'>Refresh</div>-->
+    <div class="xout" onclick='window.close()'>X</div>
+    <div class="container-fluid text-center liveimage">
+      <!--<div style="position:relative;"> -->
+        
+        <!--             onmouseover= 'toggle_menu_btn()' onmouseout='toggle_menu_btn()'-->
+        <div class ="dropdown-wrap" id="dropdown-wrap"><button class ="menu-button1" id="btn_menu1" onclick='toggle_menu()' >+</button><button class ="menu-button2 hide" id="btn_menu2" onclick='toggle_menu()' >-</button>
+          <div class = "menu-wrap hide" id = "menu-wrap">
+            <button class ="button"  id="btn_pan" onclick = 'toggle_pan()'>PAN</button><button id="btn_tilt" class ="button" onclick = 'toggle_tilt()'>TILT</button><button class ="button" onclick= 'toggle_menu_btn()' >Presets</button> <br><button class ="button" onclick='window.location="/webcam.php"'>Settings</button>            <div id = "menu_preset"class="preset-menu">
+              
+              <input type="text" id = preset1 onclick="preset(this.id,this.value)" ontouchstart='touchstart(this.id,this.value)' ontouchend='touchend()'>
+                <input type="text" id = preset2 onclick="preset(this.id,this.value)" ontouchstart='touchstart(this.id,this.value)' ontouchend='touchend()'>
+                  <input type="text" id = preset3 onclick="preset(this.id,this.value)" ontouchstart='touchstart(this.id,this.value)' ontouchend='touchend()'>
+                    <input type="text" id = preset4 onclick="preset(this.id,this.value)" ontouchstart='touchstart(this.id,this.value)' ontouchend='touchend()'>
+                      <input type="text" id = preset5 onclick="preset(this.id,this.value)" ontouchstart='touchstart(this.id,this.value)' ontouchend='touchend()'>
+                        <input type="text" id = preset6 onclick="preset(this.id,this.value)" ontouchstart='touchstart(this.id,this.value)' ontouchend='touchend()'>
+                          <input type="text" id = preset7 onclick="preset(this.id,this.value)" ontouchstart='touchstart(this.id,this.value)' ontouchend='touchend()'>
+                            <input type="text" id = preset8 onclick="preset(this.id,this.value)" ontouchstart='touchstart(this.id,this.value)' ontouchend='touchend()'>
+                              <input type="text" id = preset9 onclick="preset(this.id,this.value)" ontouchstart='touchstart(this.id,this.value)' ontouchend='touchend()'>
+                                <input type="text" id = preset10 onclick="preset(this.id,this.value)" ontouchstart='touchstart(this.id,this.value)' ontouchend='touchend()'>
+                                  </div> 
+          </div>        
+        </div>
+        <!--<img id="mjpeg_dest"src="/cam_pic_new.php" style="width:100%;"> -->
+          <div class="joystick-container" id="joystick-container">
+            <div class="outer" id="outer"><div class="inner" id="inner"></div></div>
+          </div>
+          
+          
+          </div>
+      
     
     
+    
+    
+  </body>
   
+  <script>
+    
+    var touchstartX;
+    var touchstartY;
+    var rect;
+    var p1;
+    var p2;
+    var x,y;
+    var bool_L =false;
+    var bool_R =false;
+    var bool_U =false;
+    var bool_D =false;
+    var bool_LU =false;
+    var bool_LD =false;
+    var bool_RU =false;
+    var bool_RD =false;
+    var preset_array=[];
+    function toggle_menu(){
+      /*        Show and hide the menu on click*/
+      document.getElementById("menu-wrap").classList.toggle("hide");
+      document.getElementById("joystick-container").classList.toggle("hide");
+      document.getElementById("btn_menu1").classList.toggle("hide");
+      document.getElementById("btn_menu2").classList.toggle("hide");
+    }
+  
+  function handle_presets(data){
+    /*clear the current values of the preset array*/
+    preset_array=[];
+    /*    clear the input elements*/
+    for (i=1;i<11;i++){
+      document.getElementById("preset"+i).value=""; 
+      document.getElementById("preset"+i).type="text"; 
+      
+    }
+    
+    /* Get the list of presets*/
+    
+    /*    Data comes as 1:HOME,2:DOOR,*/
+    /* data.split(",") will be an array of "number:name" pairs*/
+    /*number = data.split(",")[i].split(":")[0]*/
+    
+    
+    for (i=0;i<(data.split(",").length-1);++i){
+      var number=data.split(",")[i].split(":")[0];
+      var name= data.split(",")[i].split(":")[1];
+      /*Set the preset input value to preset name supplied by the server*/
+      document.getElementById("preset"+number).value=name;
+      /*    Add the preset name to preset array*/
+      preset_array.push(name);
+      /*Set the input with a name to type=button*/
+      document.getElementById("preset"+number).type="button";
+      
+    }
   }
-
-  function onError(evt)
-  {
-
-  console.log('error: ' + evt.data + '\n');
-  websocket.close();
-
-
+  function send_command(dir,speed){
+    /*        This function sends a command to the server only if there is a change in the direction 
+     So, it prevents continuous sending of data while the joystick is being "touchmove"
+     Hence, if, in future - we want to implement "speed of movement" - based on distance of the joystick from center - this will not work. might have to go back to old ways of continuos send dir and speed on touch move.*/
+    switch(dir)
+    {
+      case ("L"):
+      bool_R =false;
+      bool_U =false;
+      bool_D =false;
+      bool_LU =false;
+      bool_LD =false;
+      bool_RU =false;
+      bool_RD =false;
+      if (!(bool_L)){
+        bool_L=true;
+        doSend(dir+"-"+speed);
+      }
+      break;
+      case ("R"):
+      bool_L =false;
+      bool_U =false;
+      bool_D =false;
+      bool_LU =false;
+      bool_LD =false;
+      bool_RU =false;
+      bool_RD =false;
+      if (!(bool_R)){
+        bool_R=true;
+        doSend(dir+"-"+speed);
+      }
+      break;
+      case ("U"):
+      bool_R =false;
+      bool_L =false;
+      bool_D =false;
+      bool_LU =false;
+      bool_LD =false;
+      bool_RU =false;
+      bool_RD =false;
+      if (!(bool_U)){
+        bool_U=true;
+        doSend(dir+"-"+speed);
+      }
+      break;
+      case ("D"):
+      bool_R =false;
+      bool_U =false;
+      bool_L =false;
+      bool_LU =false;
+      bool_LD =false;
+      bool_RU =false;
+      bool_RD =false;
+      if (!(bool_D)){
+        bool_D=true;
+        doSend(dir+"-"+speed);
+      }
+      break;
+      case ("LU"):
+      bool_R =false;
+      bool_U =false;
+      bool_D =false;
+      bool_L =false;
+      bool_LD =false;
+      bool_RU =false;
+      bool_RD =false;
+      if (!(bool_LU)){
+        bool_LU=true;
+        doSend(dir+"-"+speed);
+      }
+      break;
+      case ("LD"):
+      bool_R =false;
+      bool_U =false;
+      bool_D =false;
+      bool_LU =false;
+      bool_L =false;
+      bool_RU =false;
+      bool_RD =false;
+      if (!(bool_LD)){
+        bool_LD=true;
+        doSend(dir+"-"+speed);
+      }
+      break;
+      case ("RU"):
+      bool_R =false;
+      bool_U =false;
+      bool_D =false;
+      bool_LU =false;
+      bool_LD =false;
+      bool_L =false;
+      bool_RD =false;
+      if (!(bool_RU)){
+        bool_RU=true;
+        doSend(dir+"-"+speed);
+      }
+      break;
+      case ("RD"):
+      bool_R =false;
+      bool_U =false;
+      bool_D =false;
+      bool_LU =false;
+      bool_LD =false;
+      bool_RU =false;
+      bool_L =false;
+      if (!(bool_RD)){
+        bool_RD=true;
+        doSend(dir+"-"+speed);
+      }
+      break;
+      default:
+      console.loh(dir+"-"+speed);
+      break;
+    }
+    
+    
   }
-
+  function preset(id,val){
+    var el=document.getElementById(id);
+    
+    /*    Send to server if value is not empty - to go to the preset*/
+    if (!(val=="")){
+      
+      doSend("S-"+val);
+      /*            If Pan or Tilt were in progress - it will be stopped by the server to go to the preset - so set the pan and tilt buttons to initial state.*/
+      document.getElementById('btn_pan').innerHTML="PAN";
+      
+      document.getElementById('btn_tilt').innerHTML="TILT";  
+      
+    }
+    else {
+      
+      /*    User is clicking an empty preset - Do u want to save this location as a preset?*/
+      /*var preset_name=prompt(" ई वाला जगह के Save कर दिहल जाओ?" , id);*/
+      var preset_name=prompt(" Save this location as preset" , id);
+      if (preset_name==null || preset_name==""){
+        /*  user cancelled the prompt*/
+      } else {
+        
+        /*                Check if this name is in the preset array - if yes then tell user that the preset will be updated*/
+        
+        for (i=0;i<(preset_array.length);++i){
+          
+          if (preset_name==preset_array[i]){
+            
+            if (confirm("This will update the preset to current location")){
+              
+              doSend("s-"+preset_name);
+              doSend("l-preset");
+              
+            }
+          }
+        }
+        
+        /* Save the preset */
+        doSend("s-"+preset_name);
+        /*               After sending the save command - request a new list to update the preset buttons*/
+        doSend("l-preset");
+      }
+    }
+  }
+  function toggle_pan(){
+    
+    var current_btnpan_val = document.getElementById('btn_pan').innerHTML;
+    if (current_btnpan_val=="PAN"){
+      document.getElementById('btn_pan').innerHTML="Stop";
+      /* To do - can set Pan speed by P-Speed*/
+      doSend("P-1");
+      
+      
+    }
+    else if (current_btnpan_val=="Stop"){
+      document.getElementById('btn_pan').innerHTML="PAN";
+      doSend("p-1");
+    }  
+    
+  }
+  
+  function toggle_tilt(){
+    
+    var current_btntilt_val = document.getElementById('btn_tilt').innerHTML;
+    if (current_btntilt_val=="TILT"){
+      document.getElementById('btn_tilt').innerHTML="Stop";
+      doSend("T-1");
+    }
+    else if (current_btntilt_val=="Stop"){
+      document.getElementById('btn_tilt').innerHTML="TILT";
+      doSend("t-1");
+    }    
+    
+  }
+  
+  var onlongtouch; 
+  var timer;
+  var touchduration = 750; //length of time we want the user to touch before we do something
+  
+  function touchstart(id,val) {
+    timer = setTimeout(onlongtouch, touchduration,id,val); 
+    
+  }
+  
+  function touchend() {
+    
+      //stops short touches from firing the event
+      if (timer)
+      clearTimeout(timer); // clearTimeout, not cleartimeout..
+  }
+  
+  onlongtouch=function(id,val) { //do something 
+    
+    /*    long press but val is empty - send to the preset function*/
+    if (val==""){
+      preset(id,val);
+    } else {
+      /* so, val is not empty -u long pressed- do you want to delete this preset or you want to update?*/
+      
+      /* var preset_name=prompt(" ई वाला जगह के Delete कर दिहल जाओ?" , val);*/
+      var preset_name=prompt("Delete this preset" , val);
+      if (preset_name==null || preset_name==""){
+        /*  user cancelled the prompt*/
+      } else {
+        
+        /* Save the preset */
+        doSend("d-"+preset_name);
+        /*               After sending the save command - request a new list to update the preset buttons*/
+        /*  Set the deleted input element back to type text*/
+        /* document.getElementById(id).type="text";*/
+        /*       This didn't work -so when hadnling the list  - set all inputs to text*/
+        
+        doSend("l-preset");
+      }
+      
+    }
+    
+  };
+  
+  
+  window.addEventListener('focus', function() {
+              foo(true);
+              },{once:true}, false);
+              
+              window.addEventListener('blur', function() {
+                          foo(false);
+                          }, {once:true}, false); 
+                          
+                          /*    var counter=1;*/
+                          function foo(bool) {
+                            if (bool){
+//                              location.reload();
+                              /*        alert("reloading"+counter);
+                               counter++;*/
+                            } else {
+                              
+//                              websock.close();    
+                            }
+                          }
+  function toggle_menu_btn(){
+    
+    var element = document.getElementById("menu_preset");
+    element.classList.toggle("preset-menu-visible");
+    
+  }
+  var draggable = document.getElementById('inner');
+  var outer = document.getElementById('outer');
+  draggable.addEventListener('touchstart', function(event) {
+                 var touch = event.targetTouches[0];
+                 
+                 rect = draggable.getBoundingClientRect();
+                 //Start point center of the inner circle
+                 touchstartX=rect.left+((rect.right -rect.left)/2);
+                 touchstartY=rect.top+((rect.bottom -rect.top)/2);
+                 p1={
+                 x:touchstartX,
+                 y:touchstartY
+                 };
+                 //console.log(touchstartX,touchstartY,rect.left,rect.right,rect.top,rect.bottom);
+                 }, false);
+                 
+                 draggable.addEventListener('touchmove', function(event) {
+                              var touch = event.targetTouches[0];
+                              
+                              //Distance between 2 coordinates
+                              if (Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2)) < 125) {
+                              // Place element where the finger is
+                              draggable.style.left = touch.pageX-(rect.left-25)+'px';
+                              draggable.style.top = touch.pageY-(rect.top-25) +'px';
+                              x = touch.pageX;
+                              y = touch.pageY;
+                              
+                              p2={
+                              x:x,
+                              y:y
+                              };
+                              
+                              /*Instead of sending a command with every touch move  - check a boolean to see if that "direction" was already sent - If so, then don't send it until there is a change.
+                               This will disable the ability to implement "speed" of movement in future.
+                               Speed of movement based of distance of joystick isn't implemented on the server side yet.'*/
+                              var angle=parseInt(Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI);
+                              switch (true){
+                              case (angle >-22.5 && angle < 22.5):  
+                              /*console.log("Moving Right");
+                               console.log("Distance from center is "+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))))
+                               */
+                              /*doSend("R-"+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));*/
+                              send_command("R",parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));
+                              break;
+                              case (angle >22.5 && angle < 67.5):  
+                              /* doSend("RD-"+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));*/
+                              send_command("RD",parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));
+                              
+                              /*
+                               console.log("Moving Right and Down");
+                               console.log("Distance from center is "+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))))
+                               */
+                              break;
+                              case (angle>67.5 && angle < 112.5):  
+                              /*doSend("D-"+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));*/
+                              send_command("D",parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));
+                              /*
+                               console.log("Moving Down");
+                               console.log("Distance from center is "+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))))
+                               */
+                              break;
+                              case (angle>112.5 && angle < 157.5):  
+                              /* doSend("LD-"+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));*/
+                              send_command("LD",parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));
+                              /*
+                               console.log("Moving Left and Down");
+                               console.log("Distance from center is "+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))))
+                               */
+                              break;
+                              case (angle>157.5 && angle < 180)||(angle>-180 &&angle <-157.5):  
+                              /* doSend("L-"+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));*/
+                              send_command("L",parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));
+                              /*
+                               console.log("Moving left");
+                               console.log("Distance from center is "+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))))
+                               */
+                              break;
+                              case (angle>-157.5 && angle < -112.5):  
+                              /*doSend("LU-"+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));*/
+                              send_command("LU",parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));
+                              /*
+                               console.log("Moving Left and Up");
+                               console.log("Distance from center is "+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))))
+                               */
+                              break;
+                              case (angle>-112.5 && angle < -67.5):  
+                              /*doSend("U-"+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));*/
+                              send_command("U",parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));
+                              /*
+                               console.log("Moving Up");
+                               console.log("Distance from center is "+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))))
+                               */
+                              break;
+                              case (angle>-67.5 && angle < -22.5):  
+                              /* doSend("RU-"+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));*/
+                              send_command("RU",parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));
+                              /*
+                               console.log("Moving Right and up");
+                               console.log("Distance from center is "+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))))
+                               */
+                              break;
+                              default:
+                              console.log("unknown angle");
+                              break;
+                              }
+                              
+                              
+                              
+                              
+                              event.preventDefault();}
+                              }, false);
+                              draggable.addEventListener('touchend', function(event) {
+                                           var touch = event.targetTouches[0];
+                                           
+                                           // Place element where the finger is
+                                           draggable.style.left = '75px';
+                                           draggable.style.top = '75px';
+                                           //Send stop
+                                           doSend("X-X");
+                                           
+                                           /*    Set all the booleans to false*/
+                                           bool_L =false;
+                                           bool_U =false;
+                                           bool_D =false;
+                                           bool_LU =false;
+                                           bool_LD =false;
+                                           bool_RU =false;
+                                           bool_RD =false;
+                                           bool_R  =false;
+                                           /* Since on the server side - Sending X-X will stop loop_pan and loop_tilt
+                                            Therefore - change the pan/tilt buttons to PAN/TILT from STOP
+                                            No need to check if the buttons are STOP or not
+                                            */ 
+                                           
+                                           document.getElementById('btn_pan').innerHTML="PAN";
+                                           
+                                           document.getElementById('btn_tilt').innerHTML="TILT";      /*
+                                                                         //Angle in radians
+                                                                         console.log(Math.atan2(p2.y - p1.y, p2.x - p1.x));  
+                                                                         */
+                                           /*  
+                                            //Angle in degrees
+                                            console.log(Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI);
+                                            */
+                                           /*
+                                            if (x<touchstartX){console.log("moving left");} else {console.log("moving right");}
+                                            if (y<touchstartY){console.log("moving up");} else {console.log("moving down");}          
+                                            */
+                                           
+                                           event.preventDefault();
+                                           }, false);
+                                           
+                                           
+                                           websock = new WebSocket('ws://' + window.location.hostname + ':8000/');
+                                             //websock = new WebSocket('ws://192.168.1.150:8000/');
+                                             websock.onopen = function(evt) { console.log('websock open');  
+                                               
+                                               
+                                             };
+  websock.onclose = function(evt) { console.log('websock close'); 
+    
+    document.getElementById("refresh").classList.toggle("connected");
+  };
+  websock.onerror = function(evt) { console.log(evt); };
+  websock.onmessage = function(evt) { console.log(evt); console.log(evt.data);
+    
+    handle_presets(evt.data);
+  };
   function doSend(message)
   {
-    console.log("sent: " + message + '\n');
-
-    websocket.send(message);
+    /*console.log("sent: " + message + '\n');*/
+    /* writeToScreen("sent: " + message + '\n'); */
+    websock.send(message);
   }
-
-function closeWS(){
-    
-   /* Probable bug in arduino websocket - hangs if not closed properly, specially by a phone browser entering a powersaving mode*/
-    websocket.close();
-    boolConnected=false;
-}
-
-/*    On android - when page loads - focus event isn't fired so websocket doesn't connect*/
-   
-   window.addEventListener("focus",doConnect, false);
-   
-    
- window.addEventListener("blur",closeWS, false);
- window.addEventListener('load', function() {
-    foo(true); 
-     /*After page loading blur doesn't fire until focus has fired at least once*/
-     
-    /* window.focus();*/
-},{once:true}, false);
-
-/*window.addEventListener('blur', function() {
-    foo(false);
-}, {once:true}, false); */
+  </script>
+</html>
 
 
-function foo(bool) {
-    if (bool){
-doConnect();
-    } else {
-        
-      
- /*   Probable bug in arduino websocket - hangs if not closed properly, specially by a phone browser entering a powersaving mode
- */       websocket.close();    
-    }
-}
-    
-</script>
-<script type="text/javascript">
-
-
-function queryServer1(direction)
-{
-
-  var payload;
-  if (document.getElementById("sw_"+direction).checked==true){
-        payload=direction;}
-        else {
-        
-        payload="STOP";
-        };
- 
-
-  doSend(payload);
- 
-};
-function returntoZero(){
-  var myreadingintxtarea=document.getElementById("mytxtarea").innerHTML.split("-");
- if(myreadingintxtarea) //check to see if it contains something = not blank = not UNDEFINED
-    {
-    
-    if (myreadingintxtarea [myreadingintxtarea.length-1] =="0") //Already at zero - do nothing. Log
-     {
-         console.log("At Zero");
-         
-     }
-    else
-        {
-            if (myreadingintxtarea.length==3) //length will be 3 if it is 0--10000 , meaning -it is at negative position. Otherwise length will be 2.
-            {
-                doSend("<F-"+myreadingintxtarea[2]+">");
-            }
-            else if (myreadingintxtarea.length==2)
-            {
-                doSend("<R-"+myreadingintxtarea[1]+">"); 
-            }
-        }
-    }
- };
-    
-</script>
-<title>Serial COM </title></head>
-<body>
-
-
-<div class = "col-6">
-  <textarea id="mytxtarea">
-    
-    </textarea>
-
-<input id = "serialSend">
-    <button id = "btnserialSend" onclick='doSend(document.getElementById("serialSend").value)'>SEND</button>
-    <button id = "btnserialSendSTOP" onclick='doSend("<S-1>")'>STOP</button>
-    <button id = "btnserialSendFOR" onclick='doSend("<F-10000>")'>F-10000</button>
-    <button id = "btnserialSendREV" onclick='doSend("<R-10000>")'>R-10000</button>
-    <button id = "btnserialSendRET2ZERO" onclick='returntoZero()'>Zero</button>
-    
-</div>
-
-</body>
-
-
-</html>)rawliteral";
+)rawliteral";
 
 
 
 
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length)
 {
-  Serial.printf("webSocketEvent(%d, %d, ...)\r\n", num, type);
+  Serial1.printf("webSocketEvent(%d, %d, ...)\r\n", num, type);
   switch(type) {
     case WStype_DISCONNECTED:
-      Serial.printf("[%u] Disconnected!\r\n", num);
+      Serial1.printf("[%u] Disconnected!\r\n", num);
       break;
     case WStype_CONNECTED:
       {
         IPAddress ip = webSocket.remoteIP(num);
-        Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\r\n", num, ip[0], ip[1], ip[2], ip[3], payload);
+        Serial1.printf("[%u] Connected from %d.%d.%d.%d url: %s\r\n", num, ip[0], ip[1], ip[2], ip[3], payload);
       //itoa( cm, str, 10 );
       //  webSocket.sendTXT(num, str, strlen(str));
       }
       break;
     case WStype_TEXT:
     {
-      //Serial.printf("[%u] get Text: %s\r\n", num, payload);
-
-      //Payload will be in the form of 3 alphapets and 3 digits
-      //DATA-105 means it is Data and value is 105
-      //COMMAND-ZERO means Command ZERO
-      //TIME-12345678 means epoch timestamp in seconds
-      
-      char *split1,*split2 ;
-     char *mystring = (char *)payload;
-      split1=subStr(mystring, "-", 1);
-      split2=subStr(mystring, "-", 2);
-      
-      if (strcmp(split1,"COMMAND") == 0)
-        {
-          //Serial.println("Received Command");
-          //Serial.println(split2);
-          if (strcmp(split2,"ZERO") == 0){
-
-          } else if (strcmp(split2,"STARTSAVE") == 0){
-            
-
-            } 
-
-            else if (strcmp(split2,"STOPSAVE") == 0) 
-            {
-
-              }
-
-             
-            else if (strcmp(split2,"RUSAVING") == 0) 
-            {
-              if (saveData){
-                webSocket.sendTXT(num, "Y");
-                } else {
-                  
-                webSocket.sendTXT(num, "N");  
-                  }
-              }
-
-        
-        } 
-      else if (strcmp(split1,"DATA") == 0)
-        {
-
-          clientHeight=atoi(split2);
-
-          if(broadcast){
-           webSocket.broadcastTXT(split2, strlen(split2));
-            } else {
-              //If not broadcast - send to browser client num =1
-              webSocket.sendTXT(1,split2, strlen(split2));
-              
-              }
-          
-        } 
-      else if (strcmp(split1,"TIME") == 0)
-        {
-          //Serial.println("Received TimeStamp");
-          //Serial.println(split2);
-          timestamp=atol(split2);
-          //currTime=split2;
-          currESPSecs = millis()/1000;
-          //Serial.println(timestamp);
-          //Serial.println(currESPSecs);
-        }
-      else 
-      {
-          Serial.printf("Unknown-");
-          Serial.printf("[%u] get Text: %s\r\n", num, payload);
-          // send data to all connected clients
-          //webSocket.broadcastTXT(payload, length);
-        //Send commands coming via websocket to atmega
-        Serial.print(mystring);
-      }
+      Serial1.printf("[%u] get Text: %s\r\n", num, payload);
+      //Send whatever comes on the WS to Atmega.
+      char *mystring = (char *)payload;
+      Serial.print(mystring);
+ 
     }
-    // clientHeight=atoi((const char *)payload);
-     // Serial.println((const char *)payload);
-     // itoa( cm, str, 10 );
-      // webSocket.sendTXT(0, str, strlen(str));
-      break;
+     break;
     case WStype_BIN:
-      Serial.printf("[%u] get binary length: %u\r\n", num, length);
-      hexdump(payload, length);
-
-      // echo data back to browser
-      webSocket.sendBIN(num, payload, length);
+      Serial1.printf("[%u] get binary length: %u\r\n", num, length);
       break;
     default:
-      Serial.printf("Invalid WStype [%d]\r\n", type);
+      Serial1.printf("Invalid WStype [%d]\r\n", type);
       break;
   }
 }
@@ -589,13 +879,12 @@ bool handleFileRead(String path) { // send the right file to the client (if it e
 */
 /*******************Serial Read Functions ************************/
 //Serial Read stuff
+
 const byte numChars = 32;
-char receivedChars[numChars]; // an array to store the received data
-boolean newData = false;
-char DIR[2] = {'X','Y'};
-//char DIR = 'Z';
-//long VALUE = 0;
-char VALUE[2]={'W','Z'};
+char receivedChars[numChars];
+
+
+
 void recvWithStartEndMarkers() {
     static boolean recvInProgress = false;
     static byte ndx = 0;
@@ -603,8 +892,7 @@ void recvWithStartEndMarkers() {
     char endMarker = '>';
     char rc;
  
- // if (Serial.available() > 0) {
-    while (Serial.available() > 0 && newData == false) {
+    while (Serial.available() > 0 ) {
         rc = Serial.read();
 
         if (recvInProgress == true) {
@@ -618,11 +906,11 @@ void recvWithStartEndMarkers() {
             else {
                 receivedChars[ndx] = '\0'; // terminate the string
                 recvInProgress = false;
-                //Broadcast received serial comm from Atmega - back to websocket
-                webSocket.broadcastTXT(receivedChars,ndx);
+                webSocket.sendTXT(0,receivedChars,ndx);
+                Serial1.println(receivedChars);
+                Serial.println(receivedChars);
                 ndx = 0;
-                parseData();
-                newData = true;
+                
             }
         }
 
@@ -632,33 +920,9 @@ void recvWithStartEndMarkers() {
     }
 }
 
-void showNewData() {
-    if (newData == true) {
-        Serial.print("This just in ... ");
-        Serial.println(receivedChars);
-        Serial.print("DIRECTION=");
-        Serial.println(DIR);
-        Serial.print("VALUE=");
-        Serial.println(VALUE);
-        newData = false;
-    }
-}
-
-void parseData() {
 
 
-    // split the data into its parts
-    
-  char * strtokIndx; // this is used by strtok() as an index
-  
-  strtokIndx = strtok(receivedChars,"-");      // get the first part - the string
-  strcpy(DIR, strtokIndx); // copy it to DIR
-  //strcpy(DIR,0);
-  //strtokIndx = strtok(NULL, "-"); // this continues where the previous call left off
-  //VALUE = atoi(strtokIndx); // convert this part to an integer
-  //VALUE = atol(strtokIndx+2);   
-  strcpy(VALUE, strtokIndx+3); // copy it to DIR
- }
+
 /*******************Serial Read Functions ************************/
 
 void setup()
@@ -670,23 +934,23 @@ void setup()
   Serial.begin(57600);
   //Serial1.setDebugOutput(true);
 
-  Serial.println();
-  Serial.println();
-  Serial.println();
+  Serial1.println();
+  Serial1.println();
+  Serial1.println();
 
   for(uint8_t t = 4; t > 0; t--) {
-    Serial.printf("[SETUP] BOOT WAIT %d...\r\n", t);
-    Serial.flush();
+    Serial1.printf("[SETUP] BOOT WAIT %d...\r\n", t);
+    Serial1.flush();
     delay(1000);
    //Serial.print("<f-10000>");
   }
 /***************** AP mode*******************/
-  Serial.print("Configuring access point...");
+  Serial1.print("Configuring access point...");
   WiFi.softAP(ssid, password);
-  WiFi.printDiag(Serial);
+  WiFi.printDiag(Serial1);
   IPAddress myIP = WiFi.softAPIP();
-  Serial.print("AP IP address: ");
-  Serial.println(myIP);
+  Serial1.print("AP IP address: ");
+  Serial1.println(myIP);
   
 /***********************************************/
 
@@ -743,21 +1007,21 @@ void setup()
   // ArduinoOTA.setPassword((const char *)"123");
    
    ArduinoOTA.onStart([]() {
-    Serial.println("Start");
+    Serial1.println("Start");
   });
   ArduinoOTA.onEnd([]() {
-    Serial.println("\nEnd");
+    Serial1.println("\nEnd");
   });
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-    Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+    Serial1.printf("Progress: %u%%\r", (progress / (total / 100)));
   });
   ArduinoOTA.onError([](ota_error_t error) {
-    Serial.printf("Error[%u]: ", error);
-    if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
-    else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
-    else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
-    else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
-    else if (error == OTA_END_ERROR) Serial.println("End Failed");
+    Serial1.printf("Error[%u]: ", error);
+    if (error == OTA_AUTH_ERROR) Serial1.println("Auth Failed");
+    else if (error == OTA_BEGIN_ERROR) Serial1.println("Begin Failed");
+    else if (error == OTA_CONNECT_ERROR) Serial1.println("Connect Failed");
+    else if (error == OTA_RECEIVE_ERROR) Serial1.println("Receive Failed");
+    else if (error == OTA_END_ERROR) Serial1.println("End Failed");
   });
   ArduinoOTA.begin();
 
@@ -774,19 +1038,4 @@ void loop()
   server.handleClient();
   ArduinoOTA.handle();
   recvWithStartEndMarkers();
-//  unsigned long currentMillis = millis();
-// delay(10);
-//  if(currentMillis - previousMillis >= interval) {
-//   Serial.print("<r-1000>");
-//    previousMillis = currentMillis; 
-//  
-//// Timer has run out
-//  }
-showNewData();
-//   if (newData) {
-//    Serial1.print(DIR[0],VALUE);
-//   newData=false;
-//   }
-// Yield to WiFi  
-//delay(5);
 }
