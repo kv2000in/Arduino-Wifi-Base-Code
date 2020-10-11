@@ -143,12 +143,12 @@ Servo 50 Hz PWM - Period = 1/50 S = 20 ms.
 long duration,distance;
 
 
-//Create Servo objects. myservo 1 - direction (Left.Right steering), myservo2 - ladder 1 up and down, myservo2 ladder 2 up and down
-Servo myservo1,myservo2,myservo3,myservo4;
-#define pinSERVO1 15 //A1
-#define pinSERVO2 16 //A2
-#define pinSERVO3 17 //A3
-#define pinSERVO4 4  //D4
+//Create Servo objects. myservoW - direction (Left.Right steering), myservoX - ladder 1 up and down, myservoY ladder 2 up and down
+Servo myservoW,myservoX,myservoY,myservoZ;
+#define pinSERVOW 15 //A1
+#define pinSERVOX 16 //A2
+#define pinSERVOY 17 //A3
+#define pinSERVOZ 4  //D4
 
 //Lights and Sounds Pins
 #define pinLIGHTS 6
@@ -195,11 +195,7 @@ char receivedChars[numChars]; // an array to store the received data
 boolean newData = false;
 
 
-//Servo FUnction
-void servoposition(int angle){
-  myservo1.write(angle);
-  
-}
+
 
 
 
@@ -258,68 +254,93 @@ void rotateBStop()
 
 void steerfrontwheel(char whichdirection){
   if(whichdirection=='L'){
-    servoposition(45);
-    Serial.print("<D-L:OK>");
+    myservoW.write(45);
+    Serial.print("<W-L:OK>");
     }
     if(whichdirection=='R'){
-    servoposition(135);
-    Serial.print("<D-R:OK>");
+    myservoW.write(135);
+    Serial.print("<W-R:OK>");
     }
     if(whichdirection=='M'){
-    servoposition(90);
-    Serial.print("<D-M:OK>");
+    myservoW.write(90);
+    Serial.print("<W-M:OK>");
     }
   
   }
 
-//Serial Read Functions
-void recvWithStartEndMarkers() {
-    static boolean recvInProgress = false;
-    static byte ndx = 0;
-    char startMarker = '<';
-    char endMarker = '>';
-    char rc;
+void moveauxservoX(char whichdirection){
+  if(whichdirection=='L'){
+    myservoX.write(45);
+    Serial.print("<X-L:OK>");
+    }
+    if(whichdirection=='R'){
+    myservoX.write(135);
+    Serial.print("<X-R:OK>");
+    }
+    if(whichdirection=='M'){
+    myservoY.write(90);
+    Serial.print("<X-M:OK>");
+    }
+  
+  }
+void moveauxservoY(char whichdirection){
+  if(whichdirection=='L'){
+    myservoY.write(45);
+    Serial.print("<Y-L:OK>");
+    }
+    if(whichdirection=='R'){
+    myservoY.write(135);
+    Serial.print("<Y-R:OK>");
+    }
+    if(whichdirection=='M'){
+    myservoY.write(90);
+    Serial.print("<Y-M:OK>");
+    }
+  
+  }
+void moveauxservoZ(char whichdirection){
+  if(whichdirection=='L'){
+    myservoZ.write(45);
+    Serial.print("<Z-L:OK>");
+    }
+    if(whichdirection=='R'){
+    myservoZ.write(135);
+    Serial.print("<Z-R:OK>");
+    }
+    if(whichdirection=='M'){
+    myservoZ.write(90);
+    Serial.print("<Z-M:OK>");
+    }
+  
+  }
+
+//Toggle LED LIGHTS
+void toggleledlights(char onoroff)
+{
+  if(onoroff=='O'){
+    digitalWrite(pinLIGHTS,LOW);
+    Serial.print("<L-O:OK>");
+    }
+  if(onoroff=='N'){
+    digitalWrite(pinLIGHTS,HIGH);
+    Serial.print("<L-N:OK>");
+    }
  
- // if (Serial.available() > 0) {
-    while (Serial.available() > 0 && newData == false) {
-        rc = Serial.read();
-
-        if (recvInProgress == true) {
-            if (rc != endMarker) {
-                receivedChars[ndx] = rc;
-                ndx++;
-                if (ndx >= numChars) {
-                    ndx = numChars - 1;
-                }
-            }
-            else {
-                receivedChars[ndx] = '\0'; // terminate the string
-                recvInProgress = false;
-                ndx = 0;
-                //parseData();
-                newData = true;
-            }
-        }
-
-        else if (rc == startMarker) {
-            recvInProgress = true;
-        }
+} 
+//Toggle Siren
+void togglesiren(char onoroff)
+{
+  if(onoroff=='O'){
+    digitalWrite(pinSIREN,LOW);
+    Serial.print("<N-O:OK>");
     }
-}
-
-
-
-
-void showNewData() {
-    if (newData == true) {
-        if(receivedChars[0]=='B'){batteryinfo(receivedChars[2]);}
-        if(receivedChars[0]=='b'){readbatteryvoltage(receivedChars[2]);}
-        if(receivedChars[0]=='C'){motorforwardreversestop(receivedChars[2]);}
-        if(receivedChars[0]=='S'){motorspeed(receivedChars[2]);}
-        if(receivedChars[0]=='D'){steerfrontwheel(receivedChars[2]);}
-        newData = false;
+  if(onoroff=='N'){
+    digitalWrite(pinSIREN,HIGH);
+    Serial.print("<N-N:OK>");
     }
-}
+ 
+} 
+
 
 /*******************i2c smbus functions*********************/
 
@@ -588,6 +609,63 @@ void motorspeed(char upordown){
   }
   
   }
+
+
+
+//Serial Read Functions
+void recvWithStartEndMarkers() {
+    static boolean recvInProgress = false;
+    static byte ndx = 0;
+    char startMarker = '<';
+    char endMarker = '>';
+    char rc;
+ 
+ // if (Serial.available() > 0) {
+    while (Serial.available() > 0 && newData == false) {
+        rc = Serial.read();
+
+        if (recvInProgress == true) {
+            if (rc != endMarker) {
+                receivedChars[ndx] = rc;
+                ndx++;
+                if (ndx >= numChars) {
+                    ndx = numChars - 1;
+                }
+            }
+            else {
+                receivedChars[ndx] = '\0'; // terminate the string
+                recvInProgress = false;
+                ndx = 0;
+                //parseData();
+                newData = true;
+            }
+        }
+
+        else if (rc == startMarker) {
+            recvInProgress = true;
+        }
+    }
+}
+
+
+
+
+void showNewData() {
+    if (newData == true) {
+        if(receivedChars[0]=='B'){batteryinfo(receivedChars[2]);}
+        if(receivedChars[0]=='b'){readbatteryvoltage(receivedChars[2]);}
+        if(receivedChars[0]=='C'){motorforwardreversestop(receivedChars[2]);}
+        if(receivedChars[0]=='S'){motorspeed(receivedChars[2]);}
+        if(receivedChars[0]=='W'){steerfrontwheel(receivedChars[2]);}
+        if(receivedChars[0]=='X'){moveauxservoX(receivedChars[2]);}
+        if(receivedChars[0]=='Y'){moveauxservoY(receivedChars[2]);}
+        if(receivedChars[0]=='Z'){moveauxservoZ(receivedChars[2]);}
+        if(receivedChars[0]=='L'){toggleledlights(receivedChars[2]);}
+        if(receivedChars[0]=='N'){togglesiren(receivedChars[2]);}
+        
+        newData = false;
+    }
+}
 void setup()
 {
   //Initialize Serial
@@ -600,10 +678,10 @@ void setup()
 
 
 //Attach servos to A1, A2 , A3 & D4
-myservo1.attach(pinSERVO1);
-myservo2.attach(pinSERVO2);
-myservo3.attach(pinSERVO3);
-myservo4.attach(pinSERVO4);
+myservoW.attach(pinSERVOW);
+myservoX.attach(pinSERVOX);
+myservoY.attach(pinSERVOY);
+myservoZ.attach(pinSERVOZ);
 
 // HR-SC04
 //Define inputs and outputs
@@ -633,6 +711,10 @@ digitalWrite(pinINA2,LOW);
 
 digitalWrite(pinINB1,LOW);
 digitalWrite(pinINB2,LOW);
+
+//Lights and Siren GPIO pins
+pinMode(pinLIGHTS,OUTPUT);
+pinMode(pinSIREN,OUTPUT);
 
 //Check battery voltage and set the max and min PWM (to protect the 6 V motor. As battery gets used up and voltage drops, JS client will adjust this value
 adjustPWM('A'); // A for analog, read the ADC. D for digital - get it from the smbus.
