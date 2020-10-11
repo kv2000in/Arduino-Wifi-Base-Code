@@ -165,7 +165,9 @@ long encoder1Position = 0;
 int PPR=8; //pulses per rotation
 int PWMSTEP=10;//Adjusting PWM in steps of 10.
 int PWMMAX=0;
+int PWMMIN=0;
 int MOTORMAXVOLTAGE =6000.0; //6000 mV for yellow motor
+int MOTORMINVOLTAGE =4000.0; //4000 mV for yellow motor
 int PWMA = PWMSTEP;
 int PWMB = PWMSTEP;
 
@@ -196,7 +198,7 @@ boolean newData = false;
 //Servo FUnction
 void servoposition(int angle){
   myservo1.write(angle);
-  Serial.print("D-L:OK"); // todo - make it dynamic so that it responds based on the command received.
+  
 }
 
 
@@ -254,7 +256,21 @@ void rotateBStop()
 
 }
 
-
+void steerfrontwheel(char whichdirection){
+  if(whichdirection=='L'){
+    servoposition(45);
+    Serial.print("<D-L:OK>");
+    }
+    if(whichdirection=='R'){
+    servoposition(135);
+    Serial.print("<D-R:OK>");
+    }
+    if(whichdirection=='M'){
+    servoposition(90);
+    Serial.print("<D-M:OK>");
+    }
+  
+  }
 
 //Serial Read Functions
 void recvWithStartEndMarkers() {
@@ -300,6 +316,7 @@ void showNewData() {
         if(receivedChars[0]=='b'){readbatteryvoltage(receivedChars[2]);}
         if(receivedChars[0]=='C'){motorforwardreversestop(receivedChars[2]);}
         if(receivedChars[0]=='S'){motorspeed(receivedChars[2]);}
+        if(receivedChars[0]=='D'){steerfrontwheel(receivedChars[2]);}
         newData = false;
     }
 }
@@ -479,11 +496,16 @@ int readbatteryvoltage(char isWSrequestingthis){
 void adjustPWM(char analogordigital){
   if (analogordigital == 'A'){
   PWMMAX = (255.0/readbatteryvoltage('V'))*MOTORMAXVOLTAGE; // 'M' - could be anything other than 'V' to avoid unnecessary serial print
+  PWMMIN = (255.0/readbatteryvoltage('V'))*MOTORMINVOLTAGE; 
+  PWMA=PWMMIN;
+  PWMB=PWMMIN;
   }
   else if (analogordigital == 'D'){
   PWMMAX = (255.0/batteryinfo('V'))*MOTORMAXVOLTAGE; //Messes up smbus if everycall to batteryinfo reads the voltage by default and returns it (which is what will happen if it were M.
+  PWMMIN = (255.0/batteryinfo('V'))*MOTORMINVOLTAGE;
+  PWMA=PWMMIN;
+  PWMB=PWMMIN;  
   }
-  Serial.print(PWMMAX);
   
   }
 
@@ -515,7 +537,7 @@ void motorforwardreversestop(char whichoneisit){
 }
 void motorspeed(char upordown){
   if(upordown=='U'){
-  if (PWMA<PWMMAX){PWMA=PWMA+PWMSTEP;
+  if (PWMMIN<PWMA<PWMMAX){PWMA=PWMA+PWMSTEP;
   analogWrite(pinENA,PWMA);
   Serial.print("<S-U:"); //'U' for motor A and 'u' for motor B
   Serial.print(PWMA);
@@ -525,7 +547,7 @@ void motorspeed(char upordown){
   Serial.print("<S-U:FAIL>");
   }
   if(upordown=='u'){
-  if (PWMB<PWMMAX){PWMB=PWMB+PWMSTEP;
+  if (PWMMIN<PWMB<PWMMAX){PWMB=PWMB+PWMSTEP;
   analogWrite(pinENB,PWMB);
   Serial.print("<S-u:"); //'U' for motor A and 'u' for motor B
   Serial.print(PWMB);
@@ -535,7 +557,7 @@ void motorspeed(char upordown){
   Serial.print("<S-u:FAIL>");
   }
   if(upordown=='D'){
-  if (PWMA>PWMSTEP*2){PWMA=PWMA-PWMSTEP;
+  if (PWMMAX>PWMA>PWMMIN){PWMA=PWMA-PWMSTEP;
   analogWrite(pinENA,PWMA);
   Serial.print("<S-D:"); //'D' for motor A and 'd' for motor B
   Serial.print(PWMA);
@@ -545,7 +567,7 @@ void motorspeed(char upordown){
   Serial.print("<S-D:FAIL>");
   }
   if(upordown=='d'){
-  if (PWMB>PWMSTEP*2){PWMB=PWMB-PWMSTEP;
+  if (PWMMAX>PWMB>PWMMIN){PWMB=PWMB-PWMSTEP;
   analogWrite(pinENB,PWMB);
   Serial.print("<S-d:"); //'D' for motor A and 'd' for motor B
   Serial.print(PWMB);
