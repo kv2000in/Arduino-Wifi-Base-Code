@@ -11,8 +11,8 @@ OC2B PD3 D3 490 Hz PWM with analogwrite(). Timer 2. D3 is also INT 1 (hardware i
 PD2 D2 INT0
 PD3 D3 INT1 (and see above)
 
-A4 SDA for i2c
-A5 SCL for i2c
+A4 SDA for i2c NEED TO BE PULLED UP BY EXTERNAL 4.7K RESISTORS TO VCC
+A5 SCL for i2c NEED TO BE PULLED UP BY EXTERNAL 4.7K RESISTORS TO VCC
 
 Can use analog pins as outputs to drive servos using  servo library.
 When using  analog functions, the pins are numbered 0-5. but these same pins are numbered 14-19 when used with digital functions.
@@ -29,46 +29,63 @@ Servo 50 Hz PWM - Period = 1/50 S = 20 ms.
 
 //*************************************i2c smbus smart battery***************
 
-//i2c PIN Definitions - need to be placed before #include <SoftI2CMaster.h> for it to compile
-#define SCL_PIN 5 //A5 but need to use 5 and not 19. It is pin 5 of PORTC
-#define SCL_PORT PORTC  //Need for compiling
-#define SDA_PIN 4 //A4 but need to use 4 and not 18. It is pin 4 of PORTC
-#define SDA_PORT PORTC //Need for compiling
-#include <SoftI2CMaster.h>
+//DEFINE SDA AND SCL PINS
+  #define SCL_PIN 5 //A5                //COMMUNICATION PIN 20 ON MEGA
+  #define SCL_PORT PORTC
 
-#define I2C_TIMEOUT 100
-#define BATT_SMBUS_ADDR                     0x0B                ///< I2C address
-#define BATT_SMBUS_ADDR_MIN                 0x08                ///< lowest possible address
-#define BATT_SMBUS_ADDR_MAX                 0x7F                ///< highest possible address
+  #define SDA_PIN 4 //A4                 //COMMUNICATION PIN 21 ON MEGA
+  #define SDA_PORT PORTC
+
+//CONFIGURE I2C MODES
+  #define I2C_TIMEOUT 100           //PREVENT SLAVE DEVICES FROM STRETCHING LOW PERIOD OF THE CLOCK INDEFINITELY AND LOCKING UP MCU BY DEFINING TIMEOUT
+  //#define I2C_NOINTERRUPT 1       //SET TO 1 IF SMBus DEVICE CAN TIMEOUT
+  //#define I2C_FASTMODE 1          //THE STANDARD I2C FREQ IS 100kHz.  USE THIS TO PERMIT FASTER UP TO 400kHz.
+  //#define I2C_SLOWMODE 1            //THE STANDARD I2C FREQ IS 100kHz.  USE THIS TO PERMIT SLOWER, DOWN TO 25kHz.
+  #include <SoftI2CMaster.h>
+
+/**********************************
+ * CONFIGURE SERIAL LIBRARY
+ **********************************/
+  //#include <SoftwareSerial.h>
+  //#include <Serial.h>
+  //#include <Wire.h>
+
+
+/**********************************
+ * DEFINE VARIABLES AND SMBus MAPPINGS
+ **********************************/
+  #define BATT_SMBUS_ADDR                     0x0B                ///< I2C address
+  #define BATT_SMBUS_ADDR_MIN                 0x08                ///< lowest possible address
+  #define BATT_SMBUS_ADDR_MAX                 0x7F                ///< highest possible address
 //BUS MAPPINGS FROM DEV.3DR
-#define BATT_SMBUS_TEMP                     0x08                ///< temperature register
-#define BATT_SMBUS_VOLTAGE                  0x09                ///< voltage register
-#define BATT_SMBUS_REMAINING_CAPACITY       0x0f                ///< predicted remaining battery capacity as a percentage
-#define BATT_SMBUS_FULL_CHARGE_CAPACITY     0x10                ///< capacity when fully charged
-#define BATT_SMBUS_DESIGN_CAPACITY          0x18                ///< design capacity register
-#define BATT_SMBUS_DESIGN_VOLTAGE           0x19                ///< design voltage register
-#define BATT_SMBUS_SERIALNUM                0x1c                ///< serial number register
-#define BATT_SMBUS_MANUFACTURE_NAME         0x20                ///< manufacturer name
-#define BATT_SMBUS_MANUFACTURE_DATA         0x23                ///< manufacturer data
-#define BATT_SMBUS_MANUFACTURE_INFO         0x25                ///< cell voltage register
-#define BATT_SMBUS_MANUFACTURE_ACCESS       0x00                ///< Manufacture access
-#define BATT_SMBUS_MANUFACTURE_DEVICE_TYPE  0x01               ///< Manufacture access  
-#define BATT_SMBUS_MANUFACTURE_F_VER        0x02               ///< Manufacture access  
-#define BATT_SMBUS_MANUFACTURE_HW_VER       0x03               ///< Manufacture access  
-#define BATT_SMBUS_MANUFACTURE_MANUF_STATUS 0x06               ///< Manufacture access  
-#define BATT_SMBUS_MANUFACTURE_LED_ON       0x32               ///< Manufacture access
-#define BATT_SMBUS_MANUFACTURE_LED_OFF      0x33               ///< Manufacture access 
-#define BATT_SMBUS_MANUFACTURE_OP_STATUS    0x54               ///< Manufacture access 
-#define BATT_SMBUS_MANUFACTURE_RESET        0x41               ///< Manufacture access
-#define BATT_SMBUS_MANUFACTURE_SAFE_ACTIVE  0x30               ///< Manufacture access
-#define BATT_SMBUS_MANUFACTURE_SAFE_CLEAR   0x31               ///< Manufacture access
-#define BATT_SMBUS_CURRENT                  0x2a                ///< current register
-#define BATT_SMBUS_MEASUREMENT_INTERVAL_US  (1000000 / 10)      ///< time in microseconds, measure at 10hz
-#define BATT_SMBUS_TIMEOUT_US               10000000            ///< timeout looking for battery 10seconds after startup
-#define BATT_SMBUS_BUTTON_DEBOUNCE_MS       300                 ///< button holds longer than this time will cause a power off event
+  #define BATT_SMBUS_TEMP                     0x08                ///< temperature register
+  #define BATT_SMBUS_VOLTAGE                  0x09                ///< voltage register
+  #define BATT_SMBUS_REMAINING_CAPACITY       0x0f                ///< predicted remaining battery capacity as a percentage
+  #define BATT_SMBUS_FULL_CHARGE_CAPACITY     0x10                ///< capacity when fully charged
+  #define BATT_SMBUS_DESIGN_CAPACITY          0x18                ///< design capacity register
+  #define BATT_SMBUS_DESIGN_VOLTAGE           0x19                ///< design voltage register
+  #define BATT_SMBUS_SERIALNUM                0x1c                ///< serial number register
+  #define BATT_SMBUS_MANUFACTURE_NAME         0x20                ///< manufacturer name
+  #define BATT_SMBUS_MANUFACTURE_DATA         0x23                ///< manufacturer data
+  #define BATT_SMBUS_MANUFACTURE_INFO         0x25                ///< cell voltage register
+  #define BATT_SMBUS_MANUFACTURE_ACCESS       0x00                ///< Manufacture access
+  #define BATT_SMBUS_MANUFACTURE_DEVICE_TYPE  0x01               ///< Manufacture access  
+  #define BATT_SMBUS_MANUFACTURE_F_VER        0x02               ///< Manufacture access  
+  #define BATT_SMBUS_MANUFACTURE_HW_VER       0x03               ///< Manufacture access  
+  #define BATT_SMBUS_MANUFACTURE_MANUF_STATUS 0x06               ///< Manufacture access  
+  #define BATT_SMBUS_MANUFACTURE_LED_ON       0x32               ///< Manufacture access
+  #define BATT_SMBUS_MANUFACTURE_LED_OFF      0x33               ///< Manufacture access 
+  #define BATT_SMBUS_MANUFACTURE_OP_STATUS    0x54               ///< Manufacture access 
+  #define BATT_SMBUS_MANUFACTURE_RESET        0x41               ///< Manufacture access
+  #define BATT_SMBUS_MANUFACTURE_SAFE_ACTIVE  0x30               ///< Manufacture access
+  #define BATT_SMBUS_MANUFACTURE_SAFE_CLEAR   0x31               ///< Manufacture access
+  #define BATT_SMBUS_CURRENT                  0x2a                ///< current register
+  #define BATT_SMBUS_MEASUREMENT_INTERVAL_US  (1000000 / 10)      ///< time in microseconds, measure at 10hz
+  #define BATT_SMBUS_TIMEOUT_US               10000000            ///< timeout looking for battery 10seconds after startup
+  #define BATT_SMBUS_BUTTON_DEBOUNCE_MS       300                 ///< button holds longer than this time will cause a power off event
  
-#define BATT_SMBUS_PEC_POLYNOMIAL           0x07                ///< Polynomial for calculating PEC
-#define BATT_SMBUS_I2C_BUS                  PX4_I2C_BUS_EXPANSION
+  #define BATT_SMBUS_PEC_POLYNOMIAL           0x07                ///< Polynomial for calculating PEC
+  #define BATT_SMBUS_I2C_BUS                  PX4_I2C_BUS_EXPANSION
 //BUS MAPPINGS FROM SMBus PROTOCOL DOCUMENTATION
 #define BATTERY_MODE             0x03
 #define CURRENT                  0x0A
@@ -99,10 +116,11 @@ Servo 50 Hz PWM - Period = 1/50 S = 20 ms.
 #define PERM_FAILURE_STATUS      0x53
 #define RESET_DATA               0x57
 #define WD_RESET_DATA            0x58
-#define bufferLen 32
-uint8_t i2cBuffer[bufferLen];
+  #define bufferLen 32
+  uint8_t i2cBuffer[bufferLen];
+
 // standard I2C address for Smart Battery packs
-byte deviceAddress = BATT_SMBUS_ADDR;
+  byte deviceAddress = BATT_SMBUS_ADDR;
 //*************************************i2c smbus smart battery***************
 
 
@@ -145,8 +163,12 @@ Servo myservo1,myservo2,myservo3,myservo4;
 long encoder0Position = 0;
 long encoder1Position = 0;
 int PPR=8; //pulses per rotation
-int PWMA = 255;
-int PWMB = 255;
+int PWMSTEP=10;//Adjusting PWM in steps of 10.
+int PWMMAX=0;
+int MOTORMAXVOLTAGE =6000.0; //6000 mV for yellow motor
+int PWMA = PWMSTEP;
+int PWMB = PWMSTEP;
+
 // volatile variables - modified by interrupt service routine (ISR)
 volatile long counter0=0;
 volatile long counter1=0;
@@ -169,147 +191,15 @@ W-180 (Aux servo 1 at 180 degree angle)
 const byte numChars = 8;
 char receivedChars[numChars]; // an array to store the received data
 boolean newData = false;
-//char LEFTofDELIM[1] = {0};
-//char RIGHTofDELIM[numChars-2]; //2 chars less - one for leftofdelim and one for delim.
-//
-//// Function to return a substring defined by a delimiter at an index
-//char* subStr (char* str, char *delim, int index) {
-//  char *act, *sub, *ptr;
-//  static char copy[MAX_STRING_LEN];
-//  int i;
-//
-//  // Since strtok consumes the first arg, make a copy
-//  strcpy(copy, str);
-//
-//  for (i = 1, act = copy; i <= index; i++, act = NULL) {
-//     sub = strtok_r(act, delim, &ptr);
-//     if (sub == NULL) break;
-//  }
-//  return sub;
-//
-//}
 
 
+//Servo FUnction
 void servoposition(int angle){
   myservo1.write(angle);
   Serial.print("D-L:OK"); // todo - make it dynamic so that it responds based on the command received.
 }
-void setup()
-{
-  //Initialize Serial
- Serial.begin (57600);
- //Initialize i2C
- if(i2c_init()){                                             //i2c_start initialized the I2C system.  will return false if bus is locked.
-    Serial.print("<I2C Inialized>");
- } else
-    Serial.print("<I2C Failed>");
 
 
-//Attach servos to A1, A2 , A3 & D4
-myservo1.attach(pinSERVO1);
-myservo2.attach(pinSERVO2);
-myservo3.attach(pinSERVO3);
-myservo4.attach(pinSERVO4);
-
-// HR-SC04
-//Define inputs and outputs
-pinMode(pinTRIG, OUTPUT);
-pinMode(pinECHO, INPUT);
- 
-//Interrupt pins
-pinMode(ENCODER0PINA, INPUT_PULLUP);
-pinMode(ENCODER1PINA, INPUT_PULLUP);
-//attach interrupts 
-attachInterrupt(digitalPinToInterrupt(ENCODER0PINA),onInterrupt0, RISING);
-attachInterrupt(digitalPinToInterrupt(ENCODER1PINA),onInterrupt1, RISING); 
-  
-
-//L293D pins
-pinMode(pinENA,OUTPUT);
-pinMode(pinINA1,OUTPUT);
-pinMode(pinINA2,OUTPUT);
-pinMode(pinENB,OUTPUT);
-pinMode(pinINB1,OUTPUT);
-pinMode(pinINB2,OUTPUT);
-  
-analogWrite(pinENA, PWMA);
-digitalWrite(pinINA1,LOW);
-digitalWrite(pinINA2,LOW);
-  
-analogWrite(pinENB, PWMB);
-digitalWrite(pinINB1,LOW);
-digitalWrite(pinINB2,LOW);
-
-
-
-}
-
-
-
-//i2c fetchword function
-int fetchWord(byte func)
-{
-    i2c_start(deviceAddress<<1 | I2C_WRITE);                //Initiates a transfer to the slave device with the (8-bit) I2C address addr.
-                                                            //Alternatively, use i2c_start_wait which tries repeatedly to start transfer until acknowledgment received
-    //i2c_start_wait(deviceAddress<<1 | I2C_WRITE);
-    i2c_write(func);                                        //Sends a byte to the previously addressed device. Returns true if the device replies with an ACK.
-    i2c_rep_start(deviceAddress<<1 | I2C_READ);             //Sends a repeated start condition, i.e., it starts a new transfer without sending first a stop condition.
-    byte b1 = i2c_read(false);                              //i2c_read Requests to receive a byte from the slave device. If last is true,
-                                                            //then a NAK is sent after receiving the byte finishing the read transfer sequence.
-    byte b2 = i2c_read(true);
-    i2c_stop();                                             //Sends a stop condition and thereby releases the bus.
-    return (int)b1|((( int)b2)<<8);
-}
-//Call the function to get i2c batt info
-void batteryinfo(){
-//    Serial.print("Relative Charge(%): ");
-//    Serial.println(fetchWord(RELATIVE_SOC));
-//    Serial.print("Voltage: ");
-//    Serial.println((float)fetchWord(BATT_SMBUS_VOLTAGE)/1000);
-// 
-//    Serial.print("Full Charge Capacity: " );
-//    Serial.println(fetchWord(BATT_SMBUS_FULL_CHARGE_CAPACITY));
-// 
-    Serial.print("<Remaining Capacity:" );
-    Serial.print(fetchWord(BATT_SMBUS_REMAINING_CAPACITY));
-    Serial.print(">");
-// 
-//    Serial.print("Temp: ");
-//    unsigned int tempk = fetchWord(BATT_SMBUS_TEMP);
-//    Serial.println((float)tempk/10.0-273.15);
-// 
-//    Serial.print("Current (mA): " );
-//    Serial.println(fetchWord(BATT_SMBUS_CURRENT));
-  }
-
-//HCSR04 distance function
-void Obstacle(){
-  digitalWrite(pinTRIG, LOW);
-  delayMicroseconds(20);
-  digitalWrite(pinTRIG, HIGH);
-  delayMicroseconds(20);
-  digitalWrite(pinTRIG, LOW);
-  
-  duration = pulseIn(pinECHO, HIGH);
-  distance = (duration/2) / 29.1;
-  Serial.print("<");
-  Serial.print(distance);
-  Serial.print(">");
-  }  
-void loop()
-{
-  //Read the Serial and move accordingly
-  recvWithStartEndMarkers();
-  
-  showNewData();
-
-    //  setPosition(DIR[0],VALUE);
-      
-  
-  
-  
-  
-}
 
 // Minimalistic ISR
 
@@ -324,23 +214,21 @@ void onInterrupt1()
   counter1++;
 
 }
+
 void rotateAF()
 {
-    analogWrite(pinENA, PWMA);
     digitalWrite(pinINA1,HIGH);
     digitalWrite(pinINA2,LOW);
     motorARunning=true;
 }
 void rotateAR()
 {
-    analogWrite(pinENA, PWMA);
     digitalWrite(pinINA1,LOW);
     digitalWrite(pinINA2,HIGH);
     motorARunning=true;
 }
 void rotateAStop()
 {
-  analogWrite(pinENA, 0);
   digitalWrite(pinINA1,LOW);
   digitalWrite(pinINA2,LOW);
   motorARunning=false;
@@ -348,26 +236,25 @@ void rotateAStop()
 
 void rotateBF()
 {
-    analogWrite(pinENB, PWMB);
     digitalWrite(pinINB1,HIGH);
     digitalWrite(pinINB2,LOW);
     motorBRunning=true;
 }
 void rotateBR()
 {
-    analogWrite(pinENB, PWMB);
     digitalWrite(pinINB1,LOW);
     digitalWrite(pinINB2,HIGH);
     motorBRunning=true;
 }
 void rotateBStop()
 {
-  analogWrite(pinENB, 0);
   digitalWrite(pinINB1,LOW);
   digitalWrite(pinINB2,LOW);
   motorBRunning=false; 
 
 }
+
+
 
 //Serial Read Functions
 void recvWithStartEndMarkers() {
@@ -404,112 +291,342 @@ void recvWithStartEndMarkers() {
     }
 }
 
+
+
+
 void showNewData() {
     if (newData == true) {
-        Serial.print("<");
-        Serial.print(receivedChars[0]); //C
-        Serial.print(receivedChars[1]);
-        Serial.print(receivedChars[2]);
-        Serial.print(receivedChars[3]);
-        Serial.print(receivedChars[4]);
-        Serial.print(">");
+        if(receivedChars[0]=='B'){batteryinfo(receivedChars[2]);}
+        if(receivedChars[0]=='b'){readbatteryvoltage(receivedChars[2]);}
+        if(receivedChars[0]=='C'){motorforwardreversestop(receivedChars[2]);}
+        if(receivedChars[0]=='S'){motorspeed(receivedChars[2]);}
         newData = false;
     }
 }
 
-/*
- Probably not needed if data coming in with fixed delims and length left of delim
-void parseData() {
+/*******************i2c smbus functions*********************/
 
-    // split the data into its parts
-    
-  char * strtokIndx; // this is used by strtok() as an index
-  
-  strtokIndx = strtok(receivedChars,"-");      // get the first part - the string
-  strcpy(DIR, strtokIndx); // copy it to DIR
-  //strcpy(DIR,0);
-  //strtokIndx = strtok(NULL, "-"); // this continues where the previous call left off
-  //VALUE = atoi(strtokIndx); // convert this part to an integer
-  VALUE = atol(strtokIndx+2);   
- }
-*/
-void setPosition(char dir, long steps)
+int fetchWord(byte func)
+{
+    i2c_start(deviceAddress<<1 | I2C_WRITE);                //Initiates a transfer to the slave device with the (8-bit) I2C address addr.
+                                                            //Alternatively, use i2c_start_wait which tries repeatedly to start transfer until acknowledgment received
+    //i2c_start_wait(deviceAddress<<1 | I2C_WRITE);
+    i2c_write(func);                                        //Sends a byte to the previously addressed device. Returns true if the device replies with an ACK.
+    i2c_rep_start(deviceAddress<<1 | I2C_READ);             //Sends a repeated start condition, i.e., it starts a new transfer without sending first a stop condition.
+    byte b1 = i2c_read(false);                              //i2c_read Requests to receive a byte from the slave device. If last is true,
+                                                            //then a NAK is sent after receiving the byte finishing the read transfer sequence.
+    byte b2 = i2c_read(true);
+    i2c_stop();                                             //Sends a stop condition and thereby releases the bus.
+    return (int)b1|((( int)b2)<<8);
+}
+
+uint8_t i2c_smbus_read_block ( uint8_t command, uint8_t* blockBuffer, uint8_t blockBufferLen )
+{
+    uint8_t x, num_bytes;
+    i2c_start((deviceAddress<<1) + I2C_WRITE);
+    i2c_write(command);
+    i2c_rep_start((deviceAddress<<1) + I2C_READ);     
+    num_bytes = i2c_read(false);                              //num of bytes; 1 byte will be index 0
+    num_bytes = constrain(num_bytes,0,blockBufferLen-2);      //room for null at the end
+    for (x=0; x<num_bytes-1; x++) {                           //-1 because x=num_bytes-1 if x<y; last byte needs to be "nack"'d, x<y-1
+      blockBuffer[x] = i2c_read(false);
+    }
+    blockBuffer[x++] = i2c_read(true);                        //this will nack the last byte and store it in x's num_bytes-1 address.
+    blockBuffer[x] = 0;                                       // and null it at last_byte+1
+    i2c_stop();
+    return num_bytes;
+}
+
+void i2c_smbus_manf_access ( uint8_t command, uint8_t myword)
 {
 
+    i2c_start((deviceAddress<<1) + I2C_WRITE);
+    i2c_write(command);
+    i2c_write(myword);
+    i2c_write(0x00);
+    i2c_stop();
+}
 
-  if (newData)
-  {
-    if(dir == 'S'){rotateAStop();}
-    if(dir == 's'){rotateBStop();}
-    // It is new data from Serial - it wants to move the motors one way or the other
-    // if stepsA<offshootA - no point turning the motor. Repeat for stepsB     
-         if (dir=='F') //Single quotes - Double quotes don't work.
-            {
-                if (not (motorARunning)) {rotateAF(); stepsA=steps; dirA=dir;}
-             }
-         else if (dir=='R')
-            {
-               if (not (motorARunning)) {rotateAR();stepsA=steps;dirA=dir;}
-            }
-         else if (dir=='f') //Single quotes - Double quotes don't work.
-            {
-               rotateBF();
-               Serial.println("<OK-BF>");
-               // if (not (motorBRunning)) {rotateBF();stepsB=steps;dirB=dir;}
-             }
-         else if (dir=='r')
-            {
-               rotateBR();
-               Serial.println("<OK-BR>");
-               //if (not (motorBRunning)) {rotateBR();stepsB=steps;dirB=dir;}
-            }
-    newData=false;
+void i2c_smbus_PF_Clear ()
+{
+/*
+ * Permanent Fail Clear: (1) 0x2673 then (2) 0x1712, 
+ * Instructs the bq20z80 to clear the Permanent Failure Status, 
+ * clear the Permanent Failure Flag, clear the SAFE and SAFE pins, and unlock the data flash for writes. 
+ * This function is only available when the bq20z80 is Unsealed
+ * NOTE:
+    (1) must be followed by (2). 
+    If the clear fails then (1) can only be re-sent after 4 seconds since the last communication in the failed attempt. 
+  If communication other than the second code occurs after the first code is sent, the clear fails.
+ * 
+ */
+    i2c_start((deviceAddress<<1) + I2C_WRITE);
+    i2c_write(0x00); //writing to manufacturer access
+    i2c_write(0x73); //Little Endian 0x1234 to be sent as 0x34 +0x12
+    i2c_write(0x26);
+    i2c_stop();
+    delay(20);
+    i2c_start((deviceAddress<<1) + I2C_WRITE);
+    i2c_write(0x00); //writing to manufacturer access
+    i2c_write(0x12); //Little Endian 0x1234 to be sent as 0x34 +0x12
+    i2c_write(0x17);
+    i2c_stop();
+    
+}
+void i2c_smbus_process_call(uint8_t command, uint8_t myword)
+{
+   i2c_start((deviceAddress<<1) + I2C_WRITE); 
+   i2c_write(command);
+   i2c_write(myword);
+   i2c_write(0x00);
+   i2c_rep_start(deviceAddress<<1 | I2C_READ);             //Sends a repeated start condition, i.e., it starts a new transfer without sending first a stop condition.
+    byte b1 = i2c_read(false);                              //i2c_read Requests to receive a byte from the slave device. If last is true,
+                                                            //then a NAK is sent after receiving the byte finishing the read transfer sequence.
+    byte b2 = i2c_read(true);
+    i2c_stop();
+   
+}
+/****************************i2c smbus functions***************************/
+
+
+//Call the function to get i2c batt info
+int batteryinfo(char whichinfo){
+    unsigned int myvoltage;
+    if(whichinfo=='C'){
+    Serial.print("<B-C:");
+    Serial.print(fetchWord(RELATIVE_SOC));
+    Serial.print(">");
     }
+    if(whichinfo=='V'){
+    Serial.print("<B-V:");
+    myvoltage = (int)fetchWord(BATT_SMBUS_VOLTAGE);
+    Serial.print(myvoltage);
+    Serial.print(">");
+    }
+    if(whichinfo=='T'){
+    unsigned int tempk = fetchWord(BATT_SMBUS_TEMP);
+    Serial.print("<B-T:");
+    Serial.print((float)tempk/10.0-273.15);
+    Serial.print(">");
+    }
+    if(whichinfo=='I'){
+    Serial.print("<B-I:");
+    Serial.print(fetchWord(CURRENT));
+    Serial.print(">");
+    }
+    if(whichinfo=='R'){
+    Serial.print("<B-R:");
+    Serial.print(fetchWord(BATT_SMBUS_REMAINING_CAPACITY));
+    Serial.print(">");
+    }
+    if(whichinfo=='F'){
+    Serial.print("<B-F:");
+    Serial.print(fetchWord(BATT_SMBUS_FULL_CHARGE_CAPACITY));
+    Serial.print(">");
+    }
+    if(whichinfo=='O'){
+    i2c_smbus_manf_access(BATT_SMBUS_MANUFACTURE_ACCESS,BATT_SMBUS_MANUFACTURE_LED_OFF);
+    Serial.print("<B-O:");
+    Serial.print("OFF");
+    Serial.print(">");
+    }
+    if(whichinfo=='N'){
+    i2c_smbus_manf_access(BATT_SMBUS_MANUFACTURE_ACCESS,BATT_SMBUS_MANUFACTURE_LED_ON);
+    Serial.print("<B-N:");
+    Serial.print("ON");
+    Serial.print(">");
+    }
+    return myvoltage;
+  }
 
-    //Now motors are running - count steps
-    if ((motorARunning) and (stepsA<counter0))
-            {
-             rotateAStop();
-             
-             
-             if (dirA=='F')
-            {
-                encoder0Position = encoder0Position+counter0;
+//HCSR04 distance function
+void obstacle(){
+  digitalWrite(pinTRIG, LOW);
+  delayMicroseconds(20);
+  digitalWrite(pinTRIG, HIGH);
+  delayMicroseconds(20);
+  digitalWrite(pinTRIG, LOW);
+  
+  duration = pulseIn(pinECHO, HIGH);
+  distance = (duration/2) / 29.1;
+  Serial.print("<");
+  Serial.print(distance);
+  Serial.print(">");
+  }  
 
-             }
-             else if (dirA=='R')
-            {
-               encoder0Position = encoder0Position-counter0;
-               
-            }
-            
-        counter0 =0;
-        Serial.print("<0-");
-        Serial.print(encoder0Position);
-        Serial.println(">"); 
-            }
-     
-    if ((motorBRunning) and (stepsB<counter1))
-    {
-              rotateBStop();
-              
-              
-             if (dirB=='f')
-            {
-                
-                encoder1Position = encoder1Position+counter1;
-             }
-         else if (dirB=='r')
-            {
-               
-               encoder1Position = encoder1Position-counter1;
-            }
-        counter1 =0;
-        Serial.print("<1-");
-        Serial.print(encoder1Position);
-        Serial.println(">");
-            }
-     
+//Analog read battery pin voltage using ADC, returns battery voltage in mVs.
+int readbatteryvoltage(char isWSrequestingthis){
+  //Full scale 3-18V = ADC 0-1024
+  //With voltage divider 18V = Atmega VCC (5V) and 3V = Atmega 0.
+  //with 680k-300K 17V = 5.2V. Will work.
+  //ADC is optimized for signals with output impedance of 10k so will have to use 22K-10k voltage divider. which will give 17V = 5.3V
+  
+  float batteryvoltage;
+  int adcreadvalue;
+  float adcvoltage;
+  adcreadvalue =analogRead(pinBATTERY);
+  adcvoltage= (adcreadvalue/1024.0)*4.91; //Measured by multimeter vcc
+  batteryvoltage=(adcvoltage+(adcvoltage*(2.2)))*1000;
+  if (isWSrequestingthis=='V'){
+    Serial.print("<b-V:");
+    Serial.print((int)batteryvoltage);
+    Serial.print(">");  
+    }
+  
+  return (int)batteryvoltage;
+  }
+
+void adjustPWM(char analogordigital){
+  if (analogordigital == 'A'){
+  PWMMAX = (255.0/readbatteryvoltage('V'))*MOTORMAXVOLTAGE; // 'M' - could be anything other than 'V' to avoid unnecessary serial print
+  }
+  else if (analogordigital == 'D'){
+  PWMMAX = (255.0/batteryinfo('V'))*MOTORMAXVOLTAGE; //Messes up smbus if everycall to batteryinfo reads the voltage by default and returns it (which is what will happen if it were M.
+  }
+  Serial.print(PWMMAX);
+  
+  }
+
+void motorforwardreversestop(char whichoneisit){
+  if(whichoneisit=='F'){
+  rotateAF();
+  Serial.print("<C-F:OK>"); //'F' for motor A and 'f' for motor B
+  }
+  if(whichoneisit=='f'){
+  rotateBF();
+  Serial.print("<C-f:OK>"); //'F' for motor A and 'f' for motor B
+  }
+  if(whichoneisit=='R'){
+  rotateAR();
+  Serial.print("<C-R:OK>"); //'R' for motor A and 'r' for motor B
+  }
+  if(whichoneisit=='r'){
+  rotateBR();
+  Serial.print("<C-r:OK>"); //'R' for motor A and 'r' for motor B
+  }
+  if(whichoneisit=='X'){
+  rotateAStop();
+  Serial.print("<C-X:OK>"); //'X' for motor A and 'x' for motor B
+  }
+  if(whichoneisit=='x'){
+  rotateBStop();
+  Serial.print("<C-x:OK>"); //'X' for motor A and 'x' for motor B
+  }
+}
+void motorspeed(char upordown){
+  if(upordown=='U'){
+  if (PWMA<PWMMAX){PWMA=PWMA+PWMSTEP;
+  analogWrite(pinENA,PWMA);
+  Serial.print("<S-U:"); //'U' for motor A and 'u' for motor B
+  Serial.print(PWMA);
+  Serial.print(">");
+  }
+  else
+  Serial.print("<S-U:FAIL>");
+  }
+  if(upordown=='u'){
+  if (PWMB<PWMMAX){PWMB=PWMB+PWMSTEP;
+  analogWrite(pinENB,PWMB);
+  Serial.print("<S-u:"); //'U' for motor A and 'u' for motor B
+  Serial.print(PWMB);
+  Serial.print(">");
+  }
+  else
+  Serial.print("<S-u:FAIL>");
+  }
+  if(upordown=='D'){
+  if (PWMA>PWMSTEP*2){PWMA=PWMA-PWMSTEP;
+  analogWrite(pinENA,PWMA);
+  Serial.print("<S-D:"); //'D' for motor A and 'd' for motor B
+  Serial.print(PWMA);
+  Serial.print(">");
+  }
+  else
+  Serial.print("<S-D:FAIL>");
+  }
+  if(upordown=='d'){
+  if (PWMB>PWMSTEP*2){PWMB=PWMB-PWMSTEP;
+  analogWrite(pinENB,PWMB);
+  Serial.print("<S-d:"); //'D' for motor A and 'd' for motor B
+  Serial.print(PWMB);
+  Serial.print(">");
+  }
+  else
+  Serial.print("<S-d:FAIL>");
+  }
+  if(upordown=='C'){
+  Serial.print("<S-C:"); //'C' for motor A and 'c' for motor B, Check current PWMA/PWMB value.
+  Serial.print(PWMA);
+  Serial.print(">");
+  }
+  if(upordown=='c'){
+  Serial.print("<S-c:"); //'C' for motor A and 'c' for motor B, Check current PWMA/PWMB value.
+  Serial.print(PWMB);
+  Serial.print(">");
+  }
+  
+  }
+void setup()
+{
+  //Initialize Serial
+ Serial.begin (57600);
+ //Initialize i2C
+ if(i2c_init()){                                             //i2c_start initialized the I2C system.  will return false if bus is locked.
+    Serial.print("<I2C Initialized>");
+ } else
+    Serial.print("<I2C Failed>");
 
 
+//Attach servos to A1, A2 , A3 & D4
+myservo1.attach(pinSERVO1);
+myservo2.attach(pinSERVO2);
+myservo3.attach(pinSERVO3);
+myservo4.attach(pinSERVO4);
+
+// HR-SC04
+//Define inputs and outputs
+pinMode(pinTRIG, OUTPUT);
+pinMode(pinECHO, INPUT);
+ 
+//Interrupt pins
+pinMode(ENCODER0PINA, INPUT_PULLUP);
+pinMode(ENCODER1PINA, INPUT_PULLUP);
+//attach interrupts 
+attachInterrupt(digitalPinToInterrupt(ENCODER0PINA),onInterrupt0, RISING);
+attachInterrupt(digitalPinToInterrupt(ENCODER1PINA),onInterrupt1, RISING); 
+  
+
+//L293D pins
+pinMode(pinENA,OUTPUT);
+pinMode(pinINA1,OUTPUT);
+pinMode(pinINA2,OUTPUT);
+pinMode(pinENB,OUTPUT);
+pinMode(pinINB1,OUTPUT);
+pinMode(pinINB2,OUTPUT);
+  
+
+digitalWrite(pinINA1,LOW);
+digitalWrite(pinINA2,LOW);
+  
+
+digitalWrite(pinINB1,LOW);
+digitalWrite(pinINB2,LOW);
+
+//Check battery voltage and set the max and min PWM (to protect the 6 V motor. As battery gets used up and voltage drops, JS client will adjust this value
+adjustPWM('A'); // A for analog, read the ADC. D for digital - get it from the smbus.
+
+}
+  
+void loop()
+{
+  //Read the Serial and move accordingly
+ recvWithStartEndMarkers();
+  
+ showNewData();
+
+    //  setPosition(DIR[0],VALUE);
+
+  
+  
+  
 }
