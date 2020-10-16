@@ -163,13 +163,16 @@ Servo myservoW,myservoX,myservoY,myservoZ;
 long encoder0Position = 0;
 long encoder1Position = 0;
 int PPR=8; //pulses per rotation
-int PWMSTEP=10;//Adjusting PWM in steps of 10.
-int PWMMAX=0;
-int PWMMIN=0;
-int MOTORMAXVOLTAGE =6000.0; //6000 mV for yellow motor
-int MOTORMINVOLTAGE =4000.0; //4000 mV for yellow motor
-int PWMA = PWMSTEP;
-int PWMB = PWMSTEP;
+int PWMAMAX=0;
+int PWMAMIN=0;
+int PWMBMAX=0;
+int PWMBMIN=0;
+int MOTORAMAXVOLTAGE =6000.0; //6000 mV for yellow motor
+int MOTORAMINVOLTAGE =4000.0; //4000 mV for yellow motor
+int MOTORBMAXVOLTAGE =6000.0; //6000 mV for yellow motor
+int MOTORBMINVOLTAGE =4000.0; //4000 mV for yellow motor
+int PWMA ;
+int PWMB ;
 
 // volatile variables - modified by interrupt service routine (ISR)
 volatile long counter0=0;
@@ -252,66 +255,35 @@ void rotateBStop()
 
 }
 
-void steerfrontwheel(char whichdirection){
-  if(whichdirection=='L'){
-    myservoW.write(45);
-    Serial.print("<W-L:OK>");
-    }
-    if(whichdirection=='R'){
-    myservoW.write(135);
-    Serial.print("<W-R:OK>");
-    }
-    if(whichdirection=='M'){
-    myservoW.write(90);
-    Serial.print("<W-M:OK>");
-    }
-  
-  }
+void moveauxservoW(char *angle){
+  int myServoAngle=atoi(angle);
+    myservoW.write(myServoAngle);
+    Serial.print("<W-");
+    Serial.print(myServoAngle);
+    Serial.print(":OK>");
+}
 
-void moveauxservoX(char whichdirection){
-  if(whichdirection=='L'){
-    myservoX.write(45);
-    Serial.print("<X-L:OK>");
-    }
-    if(whichdirection=='R'){
-    myservoX.write(135);
-    Serial.print("<X-R:OK>");
-    }
-    if(whichdirection=='M'){
-    myservoY.write(90);
-    Serial.print("<X-M:OK>");
-    }
+void moveauxservoX(char *angle){
+    int myServoAngle=atoi(angle);
+    myservoX.write(myServoAngle);
+    Serial.print("<X-");
+    Serial.print(myServoAngle);
+    Serial.print(":OK>");
   
   }
-void moveauxservoY(char whichdirection){
-  if(whichdirection=='L'){
-    myservoY.write(45);
-    Serial.print("<Y-L:OK>");
-    }
-    if(whichdirection=='R'){
-    myservoY.write(135);
-    Serial.print("<Y-R:OK>");
-    }
-    if(whichdirection=='M'){
-    myservoY.write(90);
-    Serial.print("<Y-M:OK>");
-    }
-  
-  }
-void moveauxservoZ(char whichdirection){
-  if(whichdirection=='L'){
-    myservoZ.write(45);
-    Serial.print("<Z-L:OK>");
-    }
-    if(whichdirection=='R'){
-    myservoZ.write(135);
-    Serial.print("<Z-R:OK>");
-    }
-    if(whichdirection=='M'){
-    myservoZ.write(90);
-    Serial.print("<Z-M:OK>");
-    }
-  
+void moveauxservoY(char *angle){
+  int myServoAngle=atoi(angle);
+    myservoY.write(myServoAngle);
+    Serial.print("<Y-");
+    Serial.print(myServoAngle);
+    Serial.print(":OK>");
+}
+void moveauxservoZ(char *angle){
+    int myServoAngle=atoi(angle);
+    myservoZ.write(myServoAngle);
+    Serial.print("<Z-");
+    Serial.print(myServoAngle);
+    Serial.print(":OK>");
   }
 
 //Toggle LED LIGHTS
@@ -516,18 +488,37 @@ int readbatteryvoltage(char isWSrequestingthis){
 
 void adjustPWM(char analogordigital){
   if (analogordigital == 'A'){
-  PWMMAX = (255.0/readbatteryvoltage('V'))*MOTORMAXVOLTAGE; // 'M' - could be anything other than 'V' to avoid unnecessary serial print
-  PWMMIN = (255.0/readbatteryvoltage('V'))*MOTORMINVOLTAGE; 
-  PWMA=PWMMIN;
-  PWMB=PWMMIN;
+  int mybatteryvoltage=readbatteryvoltage('A'); //readbatteryvoltage('V') results in unnecessary serial printout;
+  PWMAMAX = (255.0/mybatteryvoltage)*MOTORAMAXVOLTAGE; // 'M' - could be anything other than 'V' to avoid unnecessary serial print
+  PWMAMIN = (255.0/mybatteryvoltage)*MOTORAMINVOLTAGE; 
+  PWMBMAX = (255.0/mybatteryvoltage)*MOTORBMAXVOLTAGE; // 'M' - could be anything other than 'V' to avoid unnecessary serial print
+  PWMBMIN = (255.0/mybatteryvoltage)*MOTORBMINVOLTAGE; 
+  PWMA=PWMAMIN;
+  PWMB=PWMBMIN;
+  
   }
   else if (analogordigital == 'D'){
-  PWMMAX = (255.0/batteryinfo('V'))*MOTORMAXVOLTAGE; //Messes up smbus if everycall to batteryinfo reads the voltage by default and returns it (which is what will happen if it were M.
-  PWMMIN = (255.0/batteryinfo('V'))*MOTORMINVOLTAGE;
-  PWMA=PWMMIN;
-  PWMB=PWMMIN;  
+   int mybatteryvoltage=batteryinfo('V');
+  PWMAMAX = (255.0/mybatteryvoltage)*MOTORAMAXVOLTAGE; //Messes up smbus if everycall to batteryinfo reads the voltage by default and returns it (which is what will happen if it were M.
+  PWMAMIN = (255.0/mybatteryvoltage)*MOTORAMINVOLTAGE;
+  PWMBMAX = (255.0/mybatteryvoltage)*MOTORBMAXVOLTAGE; //Messes up smbus if everycall to batteryinfo reads the voltage by default and returns it (which is what will happen if it were M.
+  PWMBMIN = (255.0/mybatteryvoltage)*MOTORBMINVOLTAGE;
+  PWMA=PWMAMIN;
+  PWMB=PWMBMIN;  
   }
-  
+  //send max-min PWMs to the client. So, when the client connects - it will send a request to adjustPWM and expect a result
+  Serial.print("<H-");
+  Serial.print(PWMAMAX);
+  Serial.print(":OK");
+  Serial.print("<h-");
+  Serial.print(PWMBMAX);
+  Serial.print(":OK");
+  Serial.print("<L-");
+  Serial.print(PWMAMIN);
+  Serial.print(":OK");
+  Serial.print("<l-");
+  Serial.print(PWMBMIN);
+  Serial.print(":OK");
   }
 
 void motorforwardreversestop(char whichoneisit){
@@ -556,58 +547,13 @@ void motorforwardreversestop(char whichoneisit){
   Serial.print("<C-x:OK>"); //'X' for motor A and 'x' for motor B
   }
 }
-void motorspeed(char upordown){
-  if(upordown=='U'){
-  if (PWMMIN<PWMA<PWMMAX){PWMA=PWMA+PWMSTEP;
-  analogWrite(pinENA,PWMA);
-  Serial.print("<S-U:"); //'U' for motor A and 'u' for motor B
-  Serial.print(PWMA);
-  Serial.print(">");
-  }
-  else
-  Serial.print("<S-U:FAIL>");
-  }
-  if(upordown=='u'){
-  if (PWMMIN<PWMB<PWMMAX){PWMB=PWMB+PWMSTEP;
-  analogWrite(pinENB,PWMB);
-  Serial.print("<S-u:"); //'U' for motor A and 'u' for motor B
-  Serial.print(PWMB);
-  Serial.print(">");
-  }
-  else
-  Serial.print("<S-u:FAIL>");
-  }
-  if(upordown=='D'){
-  if (PWMMAX>PWMA>PWMMIN){PWMA=PWMA-PWMSTEP;
-  analogWrite(pinENA,PWMA);
-  Serial.print("<S-D:"); //'D' for motor A and 'd' for motor B
-  Serial.print(PWMA);
-  Serial.print(">");
-  }
-  else
-  Serial.print("<S-D:FAIL>");
-  }
-  if(upordown=='d'){
-  if (PWMMAX>PWMB>PWMMIN){PWMB=PWMB-PWMSTEP;
-  analogWrite(pinENB,PWMB);
-  Serial.print("<S-d:"); //'D' for motor A and 'd' for motor B
-  Serial.print(PWMB);
-  Serial.print(">");
-  }
-  else
-  Serial.print("<S-d:FAIL>");
-  }
-  if(upordown=='C'){
-  Serial.print("<S-C:"); //'C' for motor A and 'c' for motor B, Check current PWMA/PWMB value.
-  Serial.print(PWMA);
-  Serial.print(">");
-  }
-  if(upordown=='c'){
-  Serial.print("<S-c:"); //'C' for motor A and 'c' for motor B, Check current PWMA/PWMB value.
-  Serial.print(PWMB);
-  Serial.print(">");
-  }
-  
+//Trying to change the format for speed and angles from S-U, S-D to S-100, S-90 etc.
+void motorAspeed(char *pwmvalue){
+  int myPWM=atoi(pwmvalue);
+  analogWrite(pinENA,myPWM);
+  Serial.print("<S-"); //'U' for motor A and 'u' for motor B
+  Serial.print(myPWM);
+  Serial.print(":OK>");
   }
 
 
@@ -652,14 +598,15 @@ void recvWithStartEndMarkers() {
 
 void showNewData() {
     if (newData == true) {
+        if(receivedChars[0]=='A'){adjustPWM(receivedChars[2]);}
         if(receivedChars[0]=='B'){batteryinfo(receivedChars[2]);}
         if(receivedChars[0]=='b'){readbatteryvoltage(receivedChars[2]);}
         if(receivedChars[0]=='C'){motorforwardreversestop(receivedChars[2]);}
-        if(receivedChars[0]=='S'){motorspeed(receivedChars[2]);}
-        if(receivedChars[0]=='W'){steerfrontwheel(receivedChars[2]);}
-        if(receivedChars[0]=='X'){moveauxservoX(receivedChars[2]);}
-        if(receivedChars[0]=='Y'){moveauxservoY(receivedChars[2]);}
-        if(receivedChars[0]=='Z'){moveauxservoZ(receivedChars[2]);}
+        if(receivedChars[0]=='S'){motorAspeed(receivedChars+2);}
+        if(receivedChars[0]=='W'){moveauxservoW(receivedChars+2);}
+        if(receivedChars[0]=='X'){moveauxservoX(receivedChars+2);}
+        if(receivedChars[0]=='Y'){moveauxservoY(receivedChars+2);}
+        if(receivedChars[0]=='Z'){moveauxservoZ(receivedChars+2);}
         if(receivedChars[0]=='L'){toggleledlights(receivedChars[2]);}
         if(receivedChars[0]=='N'){togglesiren(receivedChars[2]);}
         
