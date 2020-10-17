@@ -1,5 +1,46 @@
 <!DOCTYPE html>
+<!--
+C-F Forward Motor A Returns C-F:OK
+C-f forward Motor B
+C-R Reverse A
+C-r reverse B
+C-X stop A
+C-x stop B
 
+A-A adjustPWM using A for Analog ADC battery voltage read. Returns H-255:OK, h-255:OK, L-255:OK, l-255:OK for PWMAMAX, PWMBMAX, PWMAMIN, PWMBMIN
+A-D adjustPWM using D for Digital SMBUS battery voltage read. Returns H-255:OK, h-255:OK, L-255:OK, l-255:OK for PWMAMAX, PWMBMAX, PWMAMIN, PWMBMIN
+
+S-255 sets PWMA to 255, returns S-255:OK
+s-255 sets PWMB to 255, returns s-255:OK
+
+b-V analog read battery voltage (mV) Returns v-13245:OK
+
+B-V SMBUS battery voltage (mV) Returns V-13245:OK
+B-I SMBUS Current (mA) Returns I--245:OK
+B-C SMBUS Relative State of Charge (%) Returns c-45:OK
+B-R SMBUS Remaining capacity (mAH) Returns R-3245:OK
+B-T SMBUS Battery Temperature (deg C) Returns T-13.2:OK
+B-F SMBUS Battery Full Capacity (mAH) Returns F-5245:OK
+B-O SMBUS Battery LED OFF Returns O-OFF:OK
+B-N SMBUS Battery LED ON Returns O-ON:OK
+
+W-135 sets servo W to 135 degrees, returns W-135:OK
+X-135 sets servo X to 135 degrees, returns X-135:OK
+Y-135 sets servo Y to 135 degrees, returns Y-135:OK
+Z-135 sets servo Z to 135 degrees, returns Z-135:OK
+
+K-N LEDs turn on Returns K-N:OK
+K-O LEDs turn off Returns K-O:OK
+
+N-N Siren turn on Returns N-N:OK
+N-O Siren turn off Returns N-O:OK
+
+
+
+
+
+
+-->
 
 <html>
 	<head>
@@ -10,36 +51,168 @@
 					margin:0px;
 					background: black;
 				} 
-			/*CSS for joystick*/        
-			.joystick-container 
+                * {
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                    }
+
+                /*     top 10%           */
+                input
+                {
+                    width:0px;
+                    height:0px;
+                    
+                    
+                }
+                input:checked + .slider-knob
+                {
+                    background: green;
+                      -webkit-transform: translateY(-26px);
+                    -ms-transform: translateY(-26px);
+                    transform: translateY(-26px);
+                }
+                .individual-status-lights
+                {
+                    width:100%;
+                    box-sizing: border-box;
+                    height:33.3%;
+                }
+                .notification-bar
+                {
+                    width:100%;
+                    display:flex;
+                    position: fixed;
+                    height:10%;
+                }
+/*                bottom 90%*/
+                .half
+                {
+                    width:100%;
+                    display:flex;
+                    position: fixed;
+                    height:45%;
+                }
+/*                position top half-10% away from top*/
+                #top-half
+                {
+                    top:10%;
+                }
+/*                position bottom half -at bottom*/
+                .bottom
+                {
+                    right:0;
+                    bottom:0;
+                }
+/*                divide 5 even width columns*/
+                .twenty
+                {
+                   width:20%;
+                }
+                .sixty
+                {
+                    width:60%;
+                }
+                .horizontalslider
+                {
+                    position: relative;
+                    height:50%; 
+                }
+/*                if height is not sufficient - make room for steering*/
+                @media only screen and (max-height: 444px) {
+                .horizontalslider
+                {
+                    position: relative;
+                    height:10%; 
+                }
+                    }
+                
+                .slider-knob
+                {
+                    height:33.3%;
+                    top:33.3%;
+                    position: relative;
+                    background: green;
+                    transition: .4s;
+                    border-radius: 1%;
+                }
+                .gearbuttons
+                {
+                    width:100%;
+                    height:33.3%;
+                    border-radius:20%;
+                }
+                .vertical3slider
+                {
+                position:relative;
+				top: 0px;
+				left: 0px;
+				border: 2px solid blueviolet;
+				align-self: center;
+				height:100%;
+				margin:0 auto; 
+                display: flex;
+
+                }
+                .vertical2slider
+                {
+                position:relative;
+				top: 0px;
+				left: 0px;
+				border: 2px solid blueviolet;
+				align-self: center;
+				height:100%;
+				margin:0 auto;  
+                }
+                .verticalslider
+                {
+                position:relative;
+				top: 0px;
+				left: 0px;
+				border: 2px solid blueviolet;
+				align-self: center;
+				height:100%;
+				margin:0 auto;  
+                }
+            .steering-container 
 			{
-				display: block;
-				position: absolute;
-				right: 10%;
-				bottom: 5%;
+                position: relative;
 				z-index: 1;
+                bottom:-25px;
 				
 			}
 			/*    CSS for Outer ring of joystick*/  
-			.outer 
+			.steering-outer-circle 
 			{
 				position:relative;
 				top: 0px;
 				left: 0px;
 				border: 2px solid blueviolet;
 				align-self: center;
-				width: 250px;
-				height:250px;
-				border-radius: 250px;
+				width: 350px;
+				height:350px;
+				border-radius: 350px;
 				margin:0 auto;
 			}
 			/*CSS for inner ring of joystick*/        
-			.inner 
+			.steering-inner-circle 
 			{
 				position:absolute;
 				border: 0px;
-				top: 75px;
-				left: 75px;
+				top: 50px;
+				left:50px;
+				/*opacity: 0.2;*/
+				border: solid blueviolet;
+				width: 250px;
+				height:250px;
+				border-radius: 250px;
+			}
+            .steering-knob 
+			{
+				position:absolute;
+				border: solid blueviolet;
+				top: -25px;
+				left: 125px;
 				background: blueviolet;
 				/*opacity: 0.2;*/
 				border: solid blueviolet;
@@ -47,219 +220,93 @@
 				height:100px;
 				border-radius: 100px;
 			}
-			/*     CSS for refresh button when websocket closes*/
-			.refresh
-			{
-				display: none;
-			}
-			.connected 
-			{
-				display: block;
-				font-size: 40px;
-				position: fixed;
-				left:40%;
-				top:45%;
-				z-index: 1;
-				color:red;
-				
-			} 
-			
-			/*    CSS for the MJPEG img display*/    
-			img
-			{
-				width: 100%;
-				display:block;   
-				
-			}    
-			/*       CSS for X out button*/
-			.xout
-			{
-				position: fixed;
-				top: 0%;
-				right: 0%;
-				font-size: 32px;
-				color: blueviolet;
-				z-index: 1;
-				border: 2px;
-				padding-left: 10px;
-				padding-right: 10px;
-				border-radius: 10px;
-				border-style: solid;
-				border-width: 4px;
-				border-color: blueviolet;
-				margin: 2px;
-			}
-			
-			/*CSS for preset menu*/
-			.preset-menu
-			{
-				display: none;
-				position: fixed;
-				width: 50%;
-				min-width: 360px;
-				z-index: 1;
-				left: 45%;
-				top: 10%;
-			}
-			.preset-menu-visible
-			{
-				display: block; 
-				
-			}
-			/*   CSS for empty presets*/
-			.preset-menu input
-			{
-				margin: 10px;
-				border-radius: 10px;
-				border-style: solid;
-				border-width: 4px;
-				border-color: blueviolet;
-				height: 30px;
-				background: transparent;
-				width: 40%;
-				font-size: 24px;
-				padding: 1px;
-			}   
-			/* CSS for presets with values*/
-			.preset-menu [type="button"] 
-			{
-				margin: 15px;
-				border-radius: 10px;
-				border-style: solid;
-				border-width: 4px;
-				border-color: #4CAF50;
-				height: 36px;
-				width: 40%;
-				font-size: 24px;
-				padding: 0px;
-				background: slateblue;
-				opacity: 0.7;
-			} 
-			
-			
-			/*Generic CSS for all the buttons (pan , tilt, settings, presets)*/
-			.button
-			{
-				background-color: transparent;
-				font-size: 25px;
-				color: white;
-				padding-left: 4px;
-				padding-right: 4px;
-				border-radius: 10px;
-				border-style: solid;
-				border-width: 4px;
-				border-color: blueviolet;
-				margin: 2px;
-			}
-			/*CSS for the outer div wrapping the menus*/
-			.dropdown-wrap
-			{
-				position: absolute;
-				left: 5%;
-				bottom: 25%; 
-				display: inline-block;
-				
-			}
-			.menu-wrap
-			{
-				display: block;
-				position: absolute;
-				min-width: 360px;
-				z-index: 1;
-			} 
-			/*CSS for the "+" sign*/        
-			.menu-button1
-			{
-				background-color: transparent;
-				font-size: 25px;
-				color: white;
-				padding-left: 10px;
-				padding-right: 10px;
-				border-radius: 10px;
-				border-style: solid;
-				border-width: 4px;
-				border-color: blueviolet;
-				margin: 2px;
-			}
-			/*CSS for the "-" sign*/
-			.menu-button2
-			{
-				background-color: transparent;
-				font-size: 25px;
-				color: white;
-				padding-left: 10px;
-				padding-right: 10px;
-				border-radius: 10px;
-				border-style: solid;
-				border-width: 4px;
-				border-color: blueviolet;
-				margin: 2px;
-				/*display: none;*/
-				display: block;
-			}
-			/*Hovering over dropdown div - show the menu-wrap div*/
-			.dropdown-wrap:hover .menu-wrap
-			{
-				/*display: block;*/
-			}
-			/*Hovering over dropdown div - Hide the + button*/
-			.dropdown-wrap:hover .menu-button1
-			{
-				/*display: none;*/
-			}
-			/*Hovering over dropdown div - Show the - button in place of + button*/
-			.dropdown-wrap:hover .menu-button2
-			{
-				/* display: block;*/
-				
-			}
-			/*Hovering over dropdown div - Hide the Joystick*/
-			.dropdown-wrap:hover ~ #joystick-container 
-			{
-				/*display: none;*/
-			}
-			
-			/*Generic class to hide visibility by toggling from javascript*/
-			.hide
-			{
-				display: none;    
-			}
+                
+                .three-slider
+                {
+                    width:49%;
+                    height:100%;
+\
+                }
+                .three-lights
+                {
+                    width:49%;
+                    height:100%;
+                    background: red;
+                 
+                }
 			</style>
 			
 			<title>Camera</title>
 			</head>
 	<body>
 		
-		<!--		<div class="refresh" id="refresh" onclick='location.reload()'>Refresh</div>-->
-		<div class="xout" onclick='window.close()'>X</div>
-		<div class="container-fluid text-center liveimage">
-			<!--<div style="position:relative;"> -->
-			
-			<!--             onmouseover= 'toggle_menu_btn()' onmouseout='toggle_menu_btn()'-->
-			<div class ="dropdown-wrap" id="dropdown-wrap"><button class ="menu-button1" id="btn_menu1" onclick='toggle_menu()' >+</button><button class ="menu-button2 hide" id="btn_menu2" onclick='toggle_menu()' >-</button>
-				<div class = "menu-wrap hide" id = "menu-wrap">
-					<button class ="button"  id="btn_pan" onclick = 'toggle_pan()'>PAN</button><button id="btn_tilt" class ="button" onclick = 'toggle_tilt()'>TILT</button><button class ="button" onclick= 'toggle_menu_btn()' >Presets</button> <br><button class ="button" onclick='window.location="/webcam.php"'>Settings</button>            <div id = "menu_preset"class="preset-menu">
-						
-						<input type="text" id = preset1 onclick="preset(this.id,this.value)" ontouchstart='touchstart(this.id,this.value)' ontouchend='touchend()'>
-							<input type="text" id = preset2 onclick="preset(this.id,this.value)" ontouchstart='touchstart(this.id,this.value)' ontouchend='touchend()'>
-								<input type="text" id = preset3 onclick="preset(this.id,this.value)" ontouchstart='touchstart(this.id,this.value)' ontouchend='touchend()'>
-									<input type="text" id = preset4 onclick="preset(this.id,this.value)" ontouchstart='touchstart(this.id,this.value)' ontouchend='touchend()'>
-										<input type="text" id = preset5 onclick="preset(this.id,this.value)" ontouchstart='touchstart(this.id,this.value)' ontouchend='touchend()'>
-											<input type="text" id = preset6 onclick="preset(this.id,this.value)" ontouchstart='touchstart(this.id,this.value)' ontouchend='touchend()'>
-												<input type="text" id = preset7 onclick="preset(this.id,this.value)" ontouchstart='touchstart(this.id,this.value)' ontouchend='touchend()'>
-													<input type="text" id = preset8 onclick="preset(this.id,this.value)" ontouchstart='touchstart(this.id,this.value)' ontouchend='touchend()'>
-														<input type="text" id = preset9 onclick="preset(this.id,this.value)" ontouchstart='touchstart(this.id,this.value)' ontouchend='touchend()'>
-															<input type="text" id = preset10 onclick="preset(this.id,this.value)" ontouchstart='touchstart(this.id,this.value)' ontouchend='touchend()'>
-																</div> 
-				</div>        
-			</div>
 			<!--<img id="mjpeg_dest"src="/cam_pic_new.php" style="width:100%;"> -->
-			<div class="joystick-container" id="joystick-container">
+			<!--<div class="joystick-container" id="joystick-container">
 				<div class="outer" id="outer"><div class="inner" id="inner"></div></div>
-			</div>
+			</div>-->
 			
-			
-		</div>
+        <div class="notification-bar" id="notification">
+            <div class="numericals" id = "smbusbatteryI"></div>
+            <div class="numericals" id = "smbusbatteryV"></div>
+            <div class = "console" id = "mylocalconsole"></div>
+            <div class="numericals" id = "smbusbatteryT"></div>
+            <div class="numericals" id = "smbusbatteryc"></div>
+            <div class="numericals" id = "smbusbatteryR"></div>
+            <div class="numericals" id = "smbusbatteryF"></div>
+            <div class="numericals" id = "analogbatteryV"></div>
+        </div>    
+        <div class ="half" id="top-half">
+                <div class="twenty vertical3slider" id = "top-left-1"></div>
+                <div class="twenty vertical3slider" id = "top-left-2"></div>
+                <div class="twenty vertical3slider" id = "top-left-3"></div>
+                <div class="twenty vertical2slider" id = "top-left-4"></div>
+                <div class="twenty vertical2slider" id = "top-left-5"></div>
+            </div>
+            <div class ="half bottom" id="bottom-half">
+
+                <div class="sixty" id = "bottom-middle"><div class="horizontalslider"></div>
+                    <div class="steering-container" id="steering-container">
+				        <div class="steering-outer-circle" id="steering-outer-circle"><div class="steering-inner-circle" id="steering-inner-circle"></div><div class ="steering-knob" id="steering-knob"></div></div>
+			         </div>
+                </div>
+                <div class="twenty vertical3slider" id = "gear">
+                <div class = "three-slider" id="gear">
+<!--                    <label><input type = "checkbox" id = "forward-checkbox">-->
+<!--                    <div class="slider-knob" id = "gearsliderknob"></div>-->
+<!--
+                    <input type="checkbox" id="stop-checkbox">
+                    <input type="checkbox"id = "reverse-checkbox">
+                    </label>
+-->
+                    
+                    <button class = "gearbuttons" id="forwardgearbutton" onclick='doSend("<C-F>")'>
+                    F
+                    </button>
+                    
+                    <button class = "gearbuttons" id="stopgearbutton" onclick='doSend("<C-X>")'>
+                    X
+                    </button>
+                    <button class = "gearbuttons" id="reversegearbutton" onclick='doSend("<C-R>")'>
+                    R
+                    </button>
+
+                    </div>
+                    
+                    <div class="three-lights" id="gear-lights">
+                        <div class="individual-status-lights" id = "forward">F</div>
+                        <div class="individual-status-lights" id = "stop">X</div>
+                        <div class="individual-status-lights" id = "reverse">R</div>
+                    </div>
+                </div>
+                <div class="twenty verticalslider" id = "bottom-left">
+                                        <button class = "gearbuttons" id="speedcontrol" onclick='doSend("<S-"+PWMAMIN+">")'>
+                    S
+                    </button>
+                
+                </div>
+                
+            </div>
+
 		
 		
 		
@@ -275,243 +322,132 @@
 		var p1;
 		var p2;
 		var x,y;
-		var bool_L =false;
-		var bool_R =false;
-		var bool_U =false;
-		var bool_D =false;
-		var bool_LU =false;
-		var bool_LD =false;
-		var bool_RU =false;
-		var bool_RD =false;
-		var preset_array=[];
-		function toggle_menu(){
-			/*        Show and hide the menu on click*/
-			document.getElementById("menu-wrap").classList.toggle("hide");
-			document.getElementById("joystick-container").classList.toggle("hide");
-			document.getElementById("btn_menu1").classList.toggle("hide");
-			document.getElementById("btn_menu2").classList.toggle("hide");
-		}
+		var PWMAMAX;
+        var PWMBMAX;
+        var PWMAMIN;
+        var PWMBMIN;
+        var PWMA;
+        var PWMB;
+
+	    
+function parse_incoming_websocket_messages(data){
+    //Data is S-255:OK or S-255:FAIL or C-F:OK or C-F:FAIL
+    //Determine if it is OK response or FAIL response, splice it on ":", log it if it is FAIL, proceed if it is OK
+    var myResponse=data.split(":")[1];
+    var returningdata=data.split(":")[0];
+    switch(myResponse){
+            case ("FAIL"):
+            document.getElementById("mylocalconsole").innerHTML=data;
+            break;
+            case("OK"):
+            var returningdata=data.split(":")[0];
+            //Now find the first character and do something
+            response_based_on_first_char(returningdata);
+            default:
+            document.getElementById("mylocalconsole").innerHTML=data;
+            break;
+            
+    }
+    
+}
+
+function response_based_on_first_char(mylocalvar){
+    //mylocalvar = S-255 or C-F or H-135 etc , see above
+    switch(mylocalvar.split("-")[0])
+    {
+        //PWMAMAX
+        case ("H"):
+            PWMAMAX=mylocalvar.split("-")[1];
+            break;
+        //PWMBMAX
+        case ("h"):
+            PWMBMAX=mylocalvar.split("-")[1];
+            break;
+        //PWMAMIN    
+        case ("L"):
+            PWMAMIN=mylocalvar.split("-")[1];
+            break;
+        //PWMBMIN    
+        case ("l"):
+            PWMBMIN=mylocalvar.split("-")[1];
+            break;
+        //PWMA    
+        case ("S"):
+            PWMA=mylocalvar.split("-")[1];
+            break;
+        //PWMB    
+        case ("s"):
+            PWMB=mylocalvar.split("-")[1];
+            break;
+        //Commands    
+        case ("C"):
+            document.getElementById("mylocalconsole").innerHTML=mylocalvar;
+            break;
+        //Servo W angle    
+        case ("W"):
+            document.getElementById("mylocalconsole").innerHTML=mylocalvar;
+            break;
+        //Servo X angle
+        case ("X"):
+            document.getElementById("mylocalconsole").innerHTML=mylocalvar;
+            break;
+        //Servo Y angle
+        case ("Y"):
+            document.getElementById("mylocalconsole").innerHTML=mylocalvar;
+            break;
+        //Servo Z angle    
+        case ("Z"):
+            document.getElementById("mylocalconsole").innerHTML=mylocalvar;
+            break;
+        //Battery Smbus Voltage    
+        case ("V"):
+            document.getElementById("smbusbatteryV").innerHTML=mylocalvar.split("-")[1];
+            break;
+        //Battery ADC analog Voltage    
+        case ("v"):
+            document.getElementById("analogbatteryV").innerHTML=mylocalvar.split("-")[1];
+            break;
+        //Battery smbus current
+        case ("I"):
+            document.getElementById("smbusbatteryI").innerHTML=mylocalvar.split("-")[1];
+            break;
+        //Battery smbus remaining capacity (mAH)
+        case ("R"):
+            document.getElementById("smbusbatteryR").innerHTML=mylocalvar.split("-")[1];
+            break;
+        //Battery smbus remaining charge (%)    
+        case ("c"):
+            document.getElementById("smbusbatteryc").innerHTML=mylocalvar.split("-")[1];
+            break;
+        //Battery smbus temperature (degC)    
+        case ("T"):
+            document.getElementById("smbusbatteryT").innerHTML=mylocalvar.split("-")[1];
+            break;
+        //Battery smbus full charge capacity (mAH)    
+        case ("F"):
+            document.getElementById("smbusbatteryF").innerHTML=mylocalvar.split("-")[1];
+            break;
+        //Battery SMBUS LED on or off    
+        case ("O"):
+            document.getElementById("mylocalconsole").innerHTML=mylocalvar;
+            break;
+        //Truck light Leds
+        case ("K"):
+            document.getElementById("mylocalconsole").innerHTML=mylocalvar;
+            break;
+        //Truck siren
+        case ("N"):
+            document.getElementById("mylocalconsole").innerHTML=mylocalvar;
+            break;
+            
+        default:
+        document.getElementById("mylocalconsole").innerHTML=mylocalvar;
+        break;
+    }
+}
+
 	
-	function handle_presets(data){
-		/*clear the current values of the preset array*/
-		preset_array=[];
-		/*    clear the input elements*/
-		for (i=1;i<11;i++){
-			document.getElementById("preset"+i).value=""; 
-			document.getElementById("preset"+i).type="text"; 
-			
-		}
-		
-		/* Get the list of presets*/
-		
-		/*    Data comes as 1:HOME,2:DOOR,*/
-		/* data.split(",") will be an array of "number:name" pairs*/
-		/*number = data.split(",")[i].split(":")[0]*/
-		
-		
-		for (i=0;i<(data.split(",").length-1);++i){
-			var number=data.split(",")[i].split(":")[0];
-			var name= data.split(",")[i].split(":")[1];
-			/*Set the preset input value to preset name supplied by the server*/
-			document.getElementById("preset"+number).value=name;
-			/*    Add the preset name to preset array*/
-			preset_array.push(name);
-			/*Set the input with a name to type=button*/
-			document.getElementById("preset"+number).type="button";
-			
-		}
-	}
-	function send_command(dir,speed){
-		/*        This function sends a command to the server only if there is a change in the direction 
-		 So, it prevents continuous sending of data while the joystick is being "touchmove"
-		 Hence, if, in future - we want to implement "speed of movement" - based on distance of the joystick from center - this will not work. might have to go back to old ways of continuos send dir and speed on touch move.*/
-		switch(dir)
-		{
-			case ("L"):
-			bool_R =false;
-			bool_U =false;
-			bool_D =false;
-			bool_LU =false;
-			bool_LD =false;
-			bool_RU =false;
-			bool_RD =false;
-			if (!(bool_L)){
-				bool_L=true;
-				doSend(dir+"-"+speed);
-			}
-			break;
-			case ("R"):
-			bool_L =false;
-			bool_U =false;
-			bool_D =false;
-			bool_LU =false;
-			bool_LD =false;
-			bool_RU =false;
-			bool_RD =false;
-			if (!(bool_R)){
-				bool_R=true;
-				doSend(dir+"-"+speed);
-			}
-			break;
-			case ("U"):
-			bool_R =false;
-			bool_L =false;
-			bool_D =false;
-			bool_LU =false;
-			bool_LD =false;
-			bool_RU =false;
-			bool_RD =false;
-			if (!(bool_U)){
-				bool_U=true;
-				doSend(dir+"-"+speed);
-			}
-			break;
-			case ("D"):
-			bool_R =false;
-			bool_U =false;
-			bool_L =false;
-			bool_LU =false;
-			bool_LD =false;
-			bool_RU =false;
-			bool_RD =false;
-			if (!(bool_D)){
-				bool_D=true;
-				doSend(dir+"-"+speed);
-			}
-			break;
-			case ("LU"):
-			bool_R =false;
-			bool_U =false;
-			bool_D =false;
-			bool_L =false;
-			bool_LD =false;
-			bool_RU =false;
-			bool_RD =false;
-			if (!(bool_LU)){
-				bool_LU=true;
-				doSend(dir+"-"+speed);
-			}
-			break;
-			case ("LD"):
-			bool_R =false;
-			bool_U =false;
-			bool_D =false;
-			bool_LU =false;
-			bool_L =false;
-			bool_RU =false;
-			bool_RD =false;
-			if (!(bool_LD)){
-				bool_LD=true;
-				doSend(dir+"-"+speed);
-			}
-			break;
-			case ("RU"):
-			bool_R =false;
-			bool_U =false;
-			bool_D =false;
-			bool_LU =false;
-			bool_LD =false;
-			bool_L =false;
-			bool_RD =false;
-			if (!(bool_RU)){
-				bool_RU=true;
-				doSend(dir+"-"+speed);
-			}
-			break;
-			case ("RD"):
-			bool_R =false;
-			bool_U =false;
-			bool_D =false;
-			bool_LU =false;
-			bool_LD =false;
-			bool_RU =false;
-			bool_L =false;
-			if (!(bool_RD)){
-				bool_RD=true;
-				doSend(dir+"-"+speed);
-			}
-			break;
-			default:
-			console.loh(dir+"-"+speed);
-			break;
-		}
-		
-		
-	}
-	function preset(id,val){
-		var el=document.getElementById(id);
-		
-		/*    Send to server if value is not empty - to go to the preset*/
-		if (!(val=="")){
-			
-			doSend("S-"+val);
-			/*            If Pan or Tilt were in progress - it will be stopped by the server to go to the preset - so set the pan and tilt buttons to initial state.*/
-			document.getElementById('btn_pan').innerHTML="PAN";
-			
-			document.getElementById('btn_tilt').innerHTML="TILT";  
-			
-		}
-		else {
-			
-			/*    User is clicking an empty preset - Do u want to save this location as a preset?*/
-			/*var preset_name=prompt(" ई वाला जगह के Save कर दिहल जाओ?" , id);*/
-			var preset_name=prompt(" Save this location as preset" , id);
-			if (preset_name==null || preset_name==""){
-				/*  user cancelled the prompt*/
-			} else {
-				
-				/*                Check if this name is in the preset array - if yes then tell user that the preset will be updated*/
-				
-				for (i=0;i<(preset_array.length);++i){
-					
-					if (preset_name==preset_array[i]){
-						
-						if (confirm("This will update the preset to current location")){
-							
-							doSend("s-"+preset_name);
-							doSend("l-preset");
-							
-						}
-					}
-				}
-				
-				/* Save the preset */
-				doSend("s-"+preset_name);
-				/*               After sending the save command - request a new list to update the preset buttons*/
-				doSend("l-preset");
-			}
-		}
-	}
-	function toggle_pan(){
-		
-		var current_btnpan_val = document.getElementById('btn_pan').innerHTML;
-		if (current_btnpan_val=="PAN"){
-			document.getElementById('btn_pan').innerHTML="Stop";
-			/* To do - can set Pan speed by P-Speed*/
-			doSend("P-1");
-			
-			
-		}
-		else if (current_btnpan_val=="Stop"){
-			document.getElementById('btn_pan').innerHTML="PAN";
-			doSend("p-1");
-		}  
-		
-	}
-	
-	function toggle_tilt(){
-		
-		var current_btntilt_val = document.getElementById('btn_tilt').innerHTML;
-		if (current_btntilt_val=="TILT"){
-			document.getElementById('btn_tilt').innerHTML="Stop";
-			doSend("T-1");
-		}
-		else if (current_btntilt_val=="Stop"){
-			document.getElementById('btn_tilt').innerHTML="TILT";
-			doSend("t-1");
-		}    
-		
-	}
+
 	
 	var onlongtouch; 
 	var timer;
@@ -554,209 +490,41 @@
 			}
 			
 		}
+    }
 		
-	};
+
 	
-	
-	window.addEventListener('focus', function() {
-							foo(true);
-							},{once:true}, false);
-							
-							window.addEventListener('blur', function() {
-													foo(false);
-													}, {once:true}, false); 
-													
-													/*    var counter=1;*/
-													function foo(bool) {
-														if (bool){
-																//															location.reload();
-																/*        alert("reloading"+counter);
-																 counter++;*/
-														} else {
-															
-																//															websock.close();    
-														}
-													}
-	function toggle_menu_btn(){
-		
-		var element = document.getElementById("menu_preset");
-		element.classList.toggle("preset-menu-visible");
-		
-	}
-	var draggable = document.getElementById('inner');
-	var outer = document.getElementById('outer');
-	draggable.addEventListener('touchstart', function(event) {
-							   var touch = event.targetTouches[0];
-							   
-							   rect = draggable.getBoundingClientRect();
-							   //Start point center of the inner circle
-							   touchstartX=rect.left+((rect.right -rect.left)/2);
-							   touchstartY=rect.top+((rect.bottom -rect.top)/2);
-							   p1={
-							   x:touchstartX,
-							   y:touchstartY
-							   };
-							   //console.log(touchstartX,touchstartY,rect.left,rect.right,rect.top,rect.bottom);
-							   }, false);
-							   
-							   draggable.addEventListener('touchmove', function(event) {
-														  var touch = event.targetTouches[0];
-														  
-														  //Distance between 2 coordinates
-														  if (Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2)) < 125) {
-														  // Place element where the finger is
-														  draggable.style.left = touch.pageX-(rect.left-25)+'px';
-														  draggable.style.top = touch.pageY-(rect.top-25) +'px';
-														  x = touch.pageX;
-														  y = touch.pageY;
-														  
-														  p2={
-														  x:x,
-														  y:y
-														  };
-														  
-														  /*Instead of sending a command with every touch move  - check a boolean to see if that "direction" was already sent - If so, then don't send it until there is a change.
-														   This will disable the ability to implement "speed" of movement in future.
-														   Speed of movement based of distance of joystick isn't implemented on the server side yet.'*/
-														  var angle=parseInt(Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI);
-														  switch (true){
-														  case (angle >-22.5 && angle < 22.5):  
-														  /*console.log("Moving Right");
-														   console.log("Distance from center is "+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))))
-														   */
-														  /*doSend("R-"+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));*/
-														  send_command("R",parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));
-														  break;
-														  case (angle >22.5 && angle < 67.5):  
-														  /* doSend("RD-"+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));*/
-														  send_command("RD",parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));
-														  
-														  /*
-														   console.log("Moving Right and Down");
-														   console.log("Distance from center is "+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))))
-														   */
-														  break;
-														  case (angle>67.5 && angle < 112.5):  
-														  /*doSend("D-"+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));*/
-														  send_command("D",parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));
-														  /*
-														   console.log("Moving Down");
-														   console.log("Distance from center is "+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))))
-														   */
-														  break;
-														  case (angle>112.5 && angle < 157.5):  
-														  /* doSend("LD-"+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));*/
-														  send_command("LD",parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));
-														  /*
-														   console.log("Moving Left and Down");
-														   console.log("Distance from center is "+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))))
-														   */
-														  break;
-														  case (angle>157.5 && angle < 180)||(angle>-180 &&angle <-157.5):  
-														  /* doSend("L-"+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));*/
-														  send_command("L",parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));
-														  /*
-														   console.log("Moving left");
-														   console.log("Distance from center is "+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))))
-														   */
-														  break;
-														  case (angle>-157.5 && angle < -112.5):  
-														  /*doSend("LU-"+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));*/
-														  send_command("LU",parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));
-														  /*
-														   console.log("Moving Left and Up");
-														   console.log("Distance from center is "+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))))
-														   */
-														  break;
-														  case (angle>-112.5 && angle < -67.5):  
-														  /*doSend("U-"+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));*/
-														  send_command("U",parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));
-														  /*
-														   console.log("Moving Up");
-														   console.log("Distance from center is "+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))))
-														   */
-														  break;
-														  case (angle>-67.5 && angle < -22.5):  
-														  /* doSend("RU-"+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));*/
-														  send_command("RU",parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))));
-														  /*
-														   console.log("Moving Right and up");
-														   console.log("Distance from center is "+parseInt(Math.sqrt(Math.pow(Math.abs(touch.pageX-touchstartX),2) + Math.pow(Math.abs(touch.pageY-touchstartY),2))))
-														   */
-														  break;
-														  default:
-														  console.log("unknown angle");
-														  break;
-														  }
-														  
-														  
-														  
-														  
-														  event.preventDefault();}
-														  }, false);
-														  draggable.addEventListener('touchend', function(event) {
-																					 var touch = event.targetTouches[0];
-																					 
-																					 // Place element where the finger is
-																					 draggable.style.left = '75px';
-																					 draggable.style.top = '75px';
-																					 //Send stop
-																					 doSend("X-X");
-																					 
-																					 /*    Set all the booleans to false*/
-																					 bool_L =false;
-																					 bool_U =false;
-																					 bool_D =false;
-																					 bool_LU =false;
-																					 bool_LD =false;
-																					 bool_RU =false;
-																					 bool_RD =false;
-																					 bool_R  =false;
-																					 /* Since on the server side - Sending X-X will stop loop_pan and loop_tilt
-																					  Therefore - change the pan/tilt buttons to PAN/TILT from STOP
-																					  No need to check if the buttons are STOP or not
-																					  */ 
-																					 
-																					 document.getElementById('btn_pan').innerHTML="PAN";
-																					 
-																					 document.getElementById('btn_tilt').innerHTML="TILT";      /*
-																																				 //Angle in radians
-																																				 console.log(Math.atan2(p2.y - p1.y, p2.x - p1.x));  
-																																				 */
-																					 /*  
-																					  //Angle in degrees
-																					  console.log(Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI);
-																					  */
-																					 /*
-																					  if (x<touchstartX){console.log("moving left");} else {console.log("moving right");}
-																					  if (y<touchstartY){console.log("moving up");} else {console.log("moving down");}          
-																					  */
-																					 
-																					 event.preventDefault();
-																					 }, false);
-																					 
-																					 
-																					 websock = new WebSocket('ws://' + window.location.hostname + ':8000/');
-																						 //websock = new WebSocket('ws://192.168.1.150:8000/');
-																						 websock.onopen = function(evt) { console.log('websock open');  
+websock = new WebSocket('ws://' + window.location.hostname + ':8000/');
+//websock = new WebSocket('ws://192.168.1.150:8000/');
+websock.onopen = function(evt) 
+{ 
+    console.log('websock open');  
+    doSend("<A-A>"); //Send adjust PWM Digital on connecting                               
+ }
 																							 
-																							 
-																						 };
-	websock.onclose = function(evt) { console.log('websock close'); 
+																				
+websock.onclose = function(evt) 
+{ 
+    console.log('websock close'); 
 		
-		document.getElementById("refresh").classList.toggle("connected");
-	};
-	websock.onerror = function(evt) { console.log(evt); };
-	websock.onmessage = function(evt) { console.log(evt); console.log(evt.data);
-		
-		handle_presets(evt.data);
-	};
-	function doSend(message)
-	{
+}
+websock.onerror = function(evt) 
+{
+    console.log(evt); 
+}
+
+websock.onmessage = function(evt) 
+{ 
+    console.log(evt); 
+    console.log(evt.data);
+    parse_incoming_websocket_messages(evt.data);
+}
+function doSend(message)
+{
 		/*console.log("sent: " + message + '\n');*/
 		/* writeToScreen("sent: " + message + '\n'); */
-		websock.send(message);
-	}
+websock.send(message);
+}
 	</script>
 </html>
 

@@ -20,6 +20,41 @@ When using  analog functions, the pins are numbered 0-5. but these same pins are
 Servo 50 Hz PWM - Period = 1/50 S = 20 ms.
 1 ms High, 19 ms Low - Full left, 1.5 ms High, 18.5 ms Low - middle, 2 ms High, 18 ms Low - full right.
 
+C-F Forward Motor A Returns C-F:OK
+C-f forward Motor B
+C-R Reverse A
+C-r reverse B
+C-X stop A
+C-x stop B
+
+A-A adjustPWM using A for Analog ADC battery voltage read. Returns H-255:OK, h-255:OK, L-255:OK, l-255:OK for PWMAMAX, PWMBMAX, PWMAMIN, PWMBMIN
+A-D adjustPWM using D for Digital SMBUS battery voltage read. Returns H-255:OK, h-255:OK, L-255:OK, l-255:OK for PWMAMAX, PWMBMAX, PWMAMIN, PWMBMIN
+
+S-255 sets PWMA to 255, returns S-255:OK
+s-255 sets PWMB to 255, returns s-255:OK
+
+b-V analog read battery voltage (mV) Returns v-13245:OK
+
+B-V SMBUS battery voltage (mV) Returns V-13245:OK
+B-I SMBUS Current (mA) Returns I--245:OK
+B-C SMBUS Relative State of Charge (%) Returns c-45:OK
+B-R SMBUS Remaining capacity (mAH) Returns R-3245:OK
+B-T SMBUS Battery Temperature (deg C) Returns T-13.2:OK
+B-F SMBUS Battery Full Capacity (mAH) Returns F-5245:OK
+B-O SMBUS Battery LED OFF Returns O-OFF:OK
+B-N SMBUS Battery LED ON Returns O-ON:OK
+
+W-135 sets servo W to 135 degrees, returns W-135:OK
+X-135 sets servo X to 135 degrees, returns X-135:OK
+Y-135 sets servo Y to 135 degrees, returns Y-135:OK
+Z-135 sets servo Z to 135 degrees, returns Z-135:OK
+
+K-N LEDs turn on Returns K-N:OK
+K-O LEDs turn off Returns K-O:OK
+
+N-N Siren turn on Returns N-N:OK
+N-O Siren turn off Returns N-O:OK
+
 
 */
 
@@ -291,11 +326,11 @@ void toggleledlights(char onoroff)
 {
   if(onoroff=='O'){
     digitalWrite(pinLIGHTS,LOW);
-    Serial.print("<L-O:OK>");
+    Serial.print("<K-O:OK>");
     }
   if(onoroff=='N'){
     digitalWrite(pinLIGHTS,HIGH);
-    Serial.print("<L-N:OK>");
+    Serial.print("<K-N:OK>");
     }
  
 } 
@@ -403,48 +438,44 @@ void i2c_smbus_process_call(uint8_t command, uint8_t myword)
 int batteryinfo(char whichinfo){
     unsigned int myvoltage;
     if(whichinfo=='C'){
-    Serial.print("<B-C:");
+    Serial.print("<c-");
     Serial.print(fetchWord(RELATIVE_SOC));
-    Serial.print(">");
+    Serial.print(":OK>");
     }
     if(whichinfo=='V'){
-    Serial.print("<B-V:");
+    Serial.print("<V-");
     myvoltage = (int)fetchWord(BATT_SMBUS_VOLTAGE);
-    Serial.print(myvoltage);
-    Serial.print(">");
+    Serial.print(":OK>");
     }
     if(whichinfo=='T'){
     unsigned int tempk = fetchWord(BATT_SMBUS_TEMP);
-    Serial.print("<B-T:");
+    Serial.print("<T-");
     Serial.print((float)tempk/10.0-273.15);
-    Serial.print(">");
+    Serial.print(":OK>");
     }
     if(whichinfo=='I'){
-    Serial.print("<B-I:");
+    Serial.print("<I-");
     Serial.print(fetchWord(CURRENT));
-    Serial.print(">");
+    Serial.print(":OK>");
     }
     if(whichinfo=='R'){
-    Serial.print("<B-R:");
+    Serial.print("<R-");
     Serial.print(fetchWord(BATT_SMBUS_REMAINING_CAPACITY));
-    Serial.print(">");
+    Serial.print(":OK>");
     }
     if(whichinfo=='F'){
-    Serial.print("<B-F:");
+    Serial.print("<F-");
     Serial.print(fetchWord(BATT_SMBUS_FULL_CHARGE_CAPACITY));
-    Serial.print(">");
+    Serial.print(":OK>");
     }
     if(whichinfo=='O'){
     i2c_smbus_manf_access(BATT_SMBUS_MANUFACTURE_ACCESS,BATT_SMBUS_MANUFACTURE_LED_OFF);
-    Serial.print("<B-O:");
-    Serial.print("OFF");
-    Serial.print(">");
+    Serial.print("<O-OFF:OK>");
     }
     if(whichinfo=='N'){
     i2c_smbus_manf_access(BATT_SMBUS_MANUFACTURE_ACCESS,BATT_SMBUS_MANUFACTURE_LED_ON);
-    Serial.print("<B-N:");
-    Serial.print("ON");
-    Serial.print(">");
+    Serial.print("<O-ON:OK>");
+
     }
     return myvoltage;
   }
@@ -478,9 +509,9 @@ int readbatteryvoltage(char isWSrequestingthis){
   adcvoltage= (adcreadvalue/1024.0)*4.91; //Measured by multimeter vcc
   batteryvoltage=(adcvoltage+(adcvoltage*(2.2)))*1000;
   if (isWSrequestingthis=='V'){
-    Serial.print("<b-V:");
+    Serial.print("<v-");
     Serial.print((int)batteryvoltage);
-    Serial.print(">");  
+    Serial.print(":OK>");  
     }
   
   return (int)batteryvoltage;
@@ -509,16 +540,16 @@ void adjustPWM(char analogordigital){
   //send max-min PWMs to the client. So, when the client connects - it will send a request to adjustPWM and expect a result
   Serial.print("<H-");
   Serial.print(PWMAMAX);
-  Serial.print(":OK");
+  Serial.print(":OK>");
   Serial.print("<h-");
   Serial.print(PWMBMAX);
-  Serial.print(":OK");
+  Serial.print(":OK>");
   Serial.print("<L-");
   Serial.print(PWMAMIN);
-  Serial.print(":OK");
+  Serial.print(":OK>");
   Serial.print("<l-");
   Serial.print(PWMBMIN);
-  Serial.print(":OK");
+  Serial.print(":OK>");
   }
 
 void motorforwardreversestop(char whichoneisit){
@@ -547,7 +578,7 @@ void motorforwardreversestop(char whichoneisit){
   Serial.print("<C-x:OK>"); //'X' for motor A and 'x' for motor B
   }
 }
-//Trying to change the format for speed and angles from S-U, S-D to S-100, S-90 etc.
+
 void motorAspeed(char *pwmvalue){
   int myPWM=atoi(pwmvalue);
   analogWrite(pinENA,myPWM);
@@ -556,7 +587,13 @@ void motorAspeed(char *pwmvalue){
   Serial.print(":OK>");
   }
 
-
+void motorBspeed(char *pwmvalue){
+  int myPWM=atoi(pwmvalue);
+  analogWrite(pinENB,myPWM);
+  Serial.print("<s-"); //'U' for motor A and 'u' for motor B
+  Serial.print(myPWM);
+  Serial.print(":OK>");
+  }
 
 //Serial Read Functions
 void recvWithStartEndMarkers() {
@@ -603,11 +640,12 @@ void showNewData() {
         if(receivedChars[0]=='b'){readbatteryvoltage(receivedChars[2]);}
         if(receivedChars[0]=='C'){motorforwardreversestop(receivedChars[2]);}
         if(receivedChars[0]=='S'){motorAspeed(receivedChars+2);}
+        if(receivedChars[0]=='s'){motorBspeed(receivedChars+2);}
         if(receivedChars[0]=='W'){moveauxservoW(receivedChars+2);}
         if(receivedChars[0]=='X'){moveauxservoX(receivedChars+2);}
         if(receivedChars[0]=='Y'){moveauxservoY(receivedChars+2);}
         if(receivedChars[0]=='Z'){moveauxservoZ(receivedChars+2);}
-        if(receivedChars[0]=='L'){toggleledlights(receivedChars[2]);}
+        if(receivedChars[0]=='K'){toggleledlights(receivedChars[2]);}
         if(receivedChars[0]=='N'){togglesiren(receivedChars[2]);}
         
         newData = false;
