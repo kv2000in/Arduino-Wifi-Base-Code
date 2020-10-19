@@ -45,7 +45,8 @@ N-O Siren turn off Returns N-O:OK
 <html>
 	<head>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-			<style>
+        <link rel="manifest" href="manifest.json">    
+        <style>
 				
 				body{
 					margin:0px;
@@ -57,7 +58,8 @@ N-O Siren turn off Returns N-O:OK
                     box-sizing: border-box;
                     }
 
-                /*     top 10%           */
+               
+/*
                 input
                 {
                     width:0px;
@@ -72,20 +74,37 @@ N-O Siren turn off Returns N-O:OK
                     -ms-transform: translateY(-26px);
                     transform: translateY(-26px);
                 }
+*/
                 .individual-status-lights
                 {
                     width:100%;
                     box-sizing: border-box;
                     height:33.3%;
                 }
+             /*     top 10%           */
                 .notification-bar
                 {
                     width:100%;
                     display:flex;
                     position: fixed;
                     height:10%;
+                    background: white;
                 }
-/*                bottom 90%*/
+            .selectables{
+                width: 20%;
+            }
+            .console
+            {
+                width:20%;
+                left:0px;
+            }
+            
+            .numericals{
+                border: solid;
+                border-radius: 20%;
+                width:10%;
+            }
+            /*                bottom 90%*/
                 .half
                 {
                     width:100%;
@@ -178,7 +197,7 @@ N-O Siren turn off Returns N-O:OK
 			{
                 position: relative;
 				z-index: 1;
-                bottom:-25px;
+                bottom:-50px;
 				
 			}
 			/*    CSS for Outer ring of joystick*/  
@@ -189,9 +208,9 @@ N-O Siren turn off Returns N-O:OK
 				left: 0px;
 				border: 2px solid blueviolet;
 				align-self: center;
-				width: 350px;
-				height:350px;
-				border-radius: 350px;
+				width: 300px;
+				height:300px;
+				border-radius: 300px;
 				margin:0 auto;
 			}
 			/*CSS for inner ring of joystick*/        
@@ -211,8 +230,8 @@ N-O Siren turn off Returns N-O:OK
 			{
 				position:absolute;
 				border: solid blueviolet;
-				top: -25px;
-				left: 125px;
+				top: -50px;
+				left: 100px;
 				background: blueviolet;
 				/*opacity: 0.2;*/
 				border: solid blueviolet;
@@ -236,7 +255,7 @@ N-O Siren turn off Returns N-O:OK
                 }
 			</style>
 			
-			<title>Camera</title>
+			<title>myRover</title>
 			</head>
 	<body>
 		
@@ -246,19 +265,32 @@ N-O Siren turn off Returns N-O:OK
 			</div>-->
 			
         <div class="notification-bar" id="notification">
-            <div class="numericals" id = "smbusbatteryI"></div>
-            <div class="numericals" id = "smbusbatteryV"></div>
             <div class = "console" id = "mylocalconsole"></div>
-            <div class="numericals" id = "smbusbatteryT"></div>
-            <div class="numericals" id = "smbusbatteryc"></div>
-            <div class="numericals" id = "smbusbatteryR"></div>
-            <div class="numericals" id = "smbusbatteryF"></div>
+            <div class="selectables">
+                <label class="genericlabel">SmartBattery</label>
+            <input type="checkbox" id = "isitasmartbattery" onchange="getbatteryinfo">
+            </div>
+            <div class="smbusnumericals numericals" id = "smbusbatteryI"></div>
+            <div class="smbusnumericals numericals" id = "smbusbatteryV"></div>
+            <div class="smbusnumericals numericals" id = "smbusbatteryT"></div>
+            <div class="smbusnumericals numericals" id = "smbusbatteryc"></div>
+            <div class="smbusnumericals numericals" id = "smbusbatteryR"></div>
+            <div class="smbusnumericals numericals" id = "smbusbatteryF"></div>
             <div class="numericals" id = "analogbatteryV"></div>
+            
         </div>    
         <div class ="half" id="top-half">
                 <div class="twenty vertical3slider" id = "top-left-1"></div>
                 <div class="twenty vertical3slider" id = "top-left-2"></div>
-                <div class="twenty vertical3slider" id = "top-left-3"></div>
+                
+            <div class="twenty vertical3slider" id = "top-left-3">
+             <button class = "gearbuttons" id="speedcontrol" onclick='doConnect()'>
+                    Connect
+                    </button>
+            <button class = "gearbuttons" id="speedcontrol" onclick='doClose()'>
+                    Close
+                    </button>
+            </div>
                 <div class="twenty vertical2slider" id = "top-left-4"></div>
                 <div class="twenty vertical2slider" id = "top-left-5"></div>
             </div>
@@ -266,7 +298,9 @@ N-O Siren turn off Returns N-O:OK
 
                 <div class="sixty" id = "bottom-middle"><div class="horizontalslider"></div>
                     <div class="steering-container" id="steering-container">
-				        <div class="steering-outer-circle" id="steering-outer-circle"><div class="steering-inner-circle" id="steering-inner-circle"></div><div class ="steering-knob" id="steering-knob"></div></div>
+				        <div class="steering-outer-circle" id="steering-outer-circle">
+<!--                            <div class="steering-inner-circle" id="steering-inner-circle"></div>-->
+                            <div class ="steering-knob" id="steering-knob"></div></div>
 			         </div>
                 </div>
                 <div class="twenty vertical3slider" id = "gear">
@@ -328,8 +362,29 @@ N-O Siren turn off Returns N-O:OK
         var PWMBMIN;
         var PWMA;
         var PWMB;
+        var steeringanlgesteps;
+        var currentsteeringangle;
+        var previousY =0;
+        var smartbattery=false;
+        //var q = setInterval(getbatteryinfo, 10000); 
 
-	    
+
+function getbatteryinfo()
+        {
+            smartbattery=document.getElementById("isitasmartbattery").checked;
+            if(smartbattery){
+                doSend("<B-V>");
+                doSend("<B-I>");
+                doSend("<B-T>");
+                doSend("<B-C>");
+                doSend("<B-R>");
+                doSend("<B-F>");
+                
+            }
+            else {
+                doSend("<b-V>");
+            }
+        }
 function parse_incoming_websocket_messages(data){
     //Data is S-255:OK or S-255:FAIL or C-F:OK or C-F:FAIL
     //Determine if it is OK response or FAIL response, splice it on ":", log it if it is FAIL, proceed if it is OK
@@ -447,9 +502,136 @@ function response_based_on_first_char(mylocalvar){
 }
 
 	
+function handleOrientation(event) {
+  var y = event.gamma;
+    var z = event.alpha;
+     var x = event.beta;
+    //console.log("alpha: " + z + "\n");
+     //document.getElementById("mylocalconsole").innerHTML = "alpha: " + z + "\n";
+    //Device has moved more than the step
+    if(Math.abs(y-previousY)>steeringanlgesteps){
+       
+    document.getElementById("mylocalconsole").innerHTML = "<W-"+(y+90)+">";  
+    //previousY=y;
+    }
+    
+    
+}
 
-	
-	var onlongtouch; 
+/*    with x1 and y1 being the coordinates of the center of a circle, (x-x1)^2+(y-y1)^2 = radius^2
+    so for any given value of x, y = sqrt(radius^2-(x-x1)^2)+y1*/
+        
+
+            
+    var draggable = document.getElementById('steering-knob');
+	var outer = document.getElementById('steering-outer-circle');
+	var touchstartX;
+    var touchstartY;
+    //get center coordinates of the steering-outer-circle
+    var centerofsteeringcircleX;
+    var centerofsteeringcircleY;
+    var rect1;
+    var rect;
+    var myX;
+    var myY;
+    var newcenterX;
+    var newcenterY;
+    var myoffsetfromcontainerX;
+    var myoffsetfromcontainerY;
+    var mymaxX;
+    var myminX;
+    var mymaxY;
+    rect1=outer.getBoundingClientRect();
+    centerofsteeringcircleX = rect1.left+((rect1.right -rect1.left)/2);
+    centerofsteeringcircleY= rect1.top+((rect1.bottom -rect1.top)/2);
+        
+            draggable.addEventListener('touchstart', function(event) {
+							   var touch = event.targetTouches[0];
+
+							   rect = draggable.getBoundingClientRect();
+							   //Start point -center of steering knob
+							   touchstartX=rect.left+((rect.width)/2);
+							   touchstartY=rect.top+((rect.height)/2);
+							   rect1=outer.getBoundingClientRect();
+                                //don't want the steering knob to go below horizon. Find the lowermost allowable steeringknob center Y pixel. it should be steering-knob's radius away from the bottom of the steering container
+                                mymaxY=window.innerHeight-(rect.height)/2;
+                                //for this maxY - calculater the max and min X values
+                                mymaxX=centerofsteeringcircleY+Math.sqrt((150*150)-(Math.pow((mymaxY-centerofsteeringcircleY),2)));
+                                myminX=centerofsteeringcircleY-Math.sqrt((150*150)-(Math.pow((mymaxY-centerofsteeringcircleY),2)));
+                                myoffsetfromcontainerX=rect.left-rect1.left;
+                                myoffsetfromcontainerY=rect.top-rect1.top;
+                
+                                p1={
+							   x:touchstartX,
+							   y:touchstartY
+							   };
+							   console.log("touchstartx="+touchstartX+", touchstartY="+touchstartY+", myoffsetX="+myoffsetfromcontainerX+", myoffsetY="+myoffsetfromcontainerY+", mymaxY="+mymaxY);
+							   }, false);
+
+							   draggable.addEventListener('touchmove', function(event) {
+														  var touch = event.targetTouches[0];
+                                                            //get the x point of touch;
+                                                            myX = touch.pageX;
+                                                            myY = touch.pageY;
+                                                            //steering knob can go radius of steering-outer-circle in x direction
+                                                            if (myminX<myX<mymaxX)
+                                                                {
+                                                                    //calculate corresponding myY value
+                                                                    myY=centerofsteeringcircleY-Math.sqrt((150*150)-(Math.pow((myX-centerofsteeringcircleX),2)));
+                                                                    
+                                                                }
+                                                            //if out of bounds, steering knob will fall below the horizon
+                                                            else
+                                                                {
+                                                                    //y will the same as mymaxY;
+                                                                    myY=mymaxY;
+                                                                    //change myX -if it is less than center then min else max
+                                                                    if(myX>centerofsteeringcircleX){
+                                                                        //moving rightwards
+                                                                        myX=mymaxX;
+                                                                        
+                                                                    }
+                                                                    else
+                                                                        { 
+                                                                            myX=myminX;
+                                                                            
+                                                                        }
+                                                                }
+                                                            
+                                                            //Now - move the knob to myX and myY
+                                                           
+														  //new center position 
+                                                        //newcenterX=touchstartX+(myX-touchstartX);
+                                                        //newcenterY=touchstartY+(myY-touchstartY);
+                                                        
+                                                        draggable.style.left = myoffsetfromcontainerX+(myX-touchstartX)+'px';
+														  draggable.style.top = myoffsetfromcontainerY+(myY-touchstartY)+'px';
+                                                            
+//                                                            draggable.style.left = draggable.offsetLeft+(myX-touchstartX)+'px';
+//                                                            draggable.style.top = draggable.offsetTop+(myY-touchstartY)+'px';  
+                                                            console.log("myX="+myX);
+                                                            console.log("myY="+myY);
+                                                            console.log("touchstartX="+touchstartX);
+                                                            console.log("touchstartY="+touchstartY);
+                                                            console.log("knob left="+(rect.left+(myX-touchstartX)));
+                                                            console.log("knob top="+(rect.top+(myY-touchstartY)));
+                                                            
+
+
+
+														  event.preventDefault();
+														  }, false);
+								        
+
+/*
+works on chrome 52 on android (GalaxyS5). I think beyond chrome 60 - needs window.isSecureContext to be true - for access to sensors
+secure context means everything has to be ssl. Doesn't work even if I save the file locally on the phone and just connect to websocket. On the other hand, saving it locally on the computer and using it - becomes a secure context and sensors can be accessed. Yes, macbook has orientation sensors too.
+*/
+        
+window.addEventListener('deviceorientation', handleOrientation);
+
+        
+    var onlongtouch; 
 	var timer;
 	var touchduration = 750; //length of time we want the user to touch before we do something
 	
@@ -492,32 +674,47 @@ function response_based_on_first_char(mylocalvar){
 		}
     }
 		
-
-	
-websock = new WebSocket('ws://' + window.location.hostname + ':8000/');
-//websock = new WebSocket('ws://192.168.1.150:8000/');
-websock.onopen = function(evt) 
-{ 
-    console.log('websock open');  
-    doSend("<A-A>"); //Send adjust PWM Digital on connecting                               
- }
+var websock;
+function doConnect()
+  {
+       // websock = new WebSocket('ws://' + window.location.hostname + ':8000/');
+        websock = new WebSocket('ws://192.168.4.1:8000/');
+        websock.onopen = function(evt) 
+            { 
+                console.log('websock open');  
+                if(smartbattery)
+                    {
+                        doSend("<A-D>"); //Send adjust PWM Digital on connecting }
+                    } 
+                else 
+                    {
+                        doSend("<A-A>"); //Send adjust PWM  on connecting }
+                                  
+                    }
+            }
 																							 
 																				
-websock.onclose = function(evt) 
-{ 
-    console.log('websock close'); 
+        websock.onclose = function(evt) 
+            { 
+            console.log('websock close'); 
 		
-}
-websock.onerror = function(evt) 
-{
-    console.log(evt); 
-}
+            }
+        websock.onerror = function(evt) 
+            {
+            console.log(evt); 
+            }
 
-websock.onmessage = function(evt) 
-{ 
-    console.log(evt); 
-    console.log(evt.data);
-    parse_incoming_websocket_messages(evt.data);
+        websock.onmessage = function(evt) 
+            { 
+            console.log(evt); 
+            //console.log(evt.data);
+            parse_incoming_websocket_messages(evt.data);
+            }
+  }
+
+function doClose()
+{
+    websock.close();
 }
 function doSend(message)
 {
@@ -525,6 +722,8 @@ function doSend(message)
 		/* writeToScreen("sent: " + message + '\n'); */
 websock.send(message);
 }
+
+
 	</script>
 </html>
 
