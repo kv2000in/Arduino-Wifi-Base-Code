@@ -48,11 +48,26 @@ N-O Siren turn off Returns N-O:OK
         <link rel="manifest" href="manifest.json">    
         <style>
 				
-				body{
+				
+  
+/*        disable scrolling    */
+            html{
+margin:0;
+padding:0;
+overflow: hidden;
+}
+body{
+position: absolute;
+width:100%;
+height:100%;
+overflow: auto;
 					margin:0px;
 					background: black;
-				} 
-                * {
+}
+               
+                
+            
+            * {
                     margin: 0;
                     padding: 0;
                     box-sizing: border-box;
@@ -280,8 +295,42 @@ N-O Siren turn off Returns N-O:OK
             
         </div>    
         <div class ="half" id="top-half">
-                <div class="twenty vertical3slider" id = "top-left-1"></div>
-                <div class="twenty vertical3slider" id = "top-left-2"></div>
+                <div class="twenty vertical3slider" id = "top-left-1">                                        <button class = "gearbuttons" id="speedcontrol" onclick='doSend("<s-"+PWMBMIN+">")'>
+                    s
+                    </button></div>
+                <div class="twenty vertical3slider" id = "top-left-2" id="gearB">
+            
+                            <div class = "three-slider" id="gearBslider">
+<!--                    <label><input type = "checkbox" id = "forward-checkbox">-->
+<!--                    <div class="slider-knob" id = "gearsliderknob"></div>-->
+<!--
+                    <input type="checkbox" id="stop-checkbox">
+                    <input type="checkbox"id = "reverse-checkbox">
+                    </label>
+-->
+                    
+                    <button class = "gearbuttons" id="forwardgearbuttonB" onclick='doSend("<C-f>")'>
+                    F
+                    </button>
+                    
+                    <button class = "gearbuttons" id="stopgearbuttonB" onclick='doSend("<C-x>")'>
+                    X
+                    </button>
+                    <button class = "gearbuttons" id="reversegearbuttonB" onclick='doSend("<C-r>")'>
+                    R
+                    </button>
+
+                    </div>
+                    
+                    <div class="three-lights" id="gear-lights">
+                        <div class="individual-status-lights" id = "lightforwardB">F</div>
+                        <div class="individual-status-lights" id = "lightstopB">X</div>
+                        <div class="individual-status-lights" id = "lightreverseB">R</div>
+                    </div>
+            
+            
+            
+            </div>
                 
             <div class="twenty vertical3slider" id = "top-left-3">
              <button class = "gearbuttons" id="speedcontrol" onclick='doConnect()'>
@@ -303,8 +352,8 @@ N-O Siren turn off Returns N-O:OK
                             <div class ="steering-knob" id="steering-knob"></div></div>
 			         </div>
                 </div>
-                <div class="twenty vertical3slider" id = "gear">
-                <div class = "three-slider" id="gear">
+                <div class="twenty vertical3slider" id = "gearA">
+                <div class = "three-slider" id="gearAslider">
 <!--                    <label><input type = "checkbox" id = "forward-checkbox">-->
 <!--                    <div class="slider-knob" id = "gearsliderknob"></div>-->
 <!--
@@ -313,23 +362,23 @@ N-O Siren turn off Returns N-O:OK
                     </label>
 -->
                     
-                    <button class = "gearbuttons" id="forwardgearbutton" onclick='doSend("<C-F>")'>
+                    <button class = "gearbuttons" id="forwardgearbuttonA" onclick='doSend("<C-F>")'>
                     F
                     </button>
                     
-                    <button class = "gearbuttons" id="stopgearbutton" onclick='doSend("<C-X>")'>
+                    <button class = "gearbuttons" id="stopgearbuttonA" onclick='doSend("<C-X>")'>
                     X
                     </button>
-                    <button class = "gearbuttons" id="reversegearbutton" onclick='doSend("<C-R>")'>
+                    <button class = "gearbuttons" id="reversegearbuttonA" onclick='doSend("<C-R>")'>
                     R
                     </button>
 
                     </div>
                     
                     <div class="three-lights" id="gear-lights">
-                        <div class="individual-status-lights" id = "forward">F</div>
-                        <div class="individual-status-lights" id = "stop">X</div>
-                        <div class="individual-status-lights" id = "reverse">R</div>
+                        <div class="individual-status-lights" id = "lightforwardA">F</div>
+                        <div class="individual-status-lights" id = "lightstopA">X</div>
+                        <div class="individual-status-lights" id = "lightreverseA">R</div>
                     </div>
                 </div>
                 <div class="twenty verticalslider" id = "bottom-left">
@@ -366,7 +415,7 @@ N-O Siren turn off Returns N-O:OK
         var currentsteeringangle;
         var previousY =0;
         var smartbattery=false;
-        //var q = setInterval(getbatteryinfo, 10000); 
+        var q = setInterval(getbatteryinfo, 10000); 
 
 
 function getbatteryinfo()
@@ -534,13 +583,10 @@ function handleOrientation(event) {
     var rect;
     var myX;
     var myY;
-    var newcenterX;
-    var newcenterY;
     var myoffsetfromcontainerX;
     var myoffsetfromcontainerY;
-    var mymaxX;
-    var myminX;
     var mymaxY;
+    var myangle;
     rect1=outer.getBoundingClientRect();
     centerofsteeringcircleX = rect1.left+((rect1.right -rect1.left)/2);
     centerofsteeringcircleY= rect1.top+((rect1.bottom -rect1.top)/2);
@@ -555,73 +601,53 @@ function handleOrientation(event) {
 							   rect1=outer.getBoundingClientRect();
                                 //don't want the steering knob to go below horizon. Find the lowermost allowable steeringknob center Y pixel. it should be steering-knob's radius away from the bottom of the steering container
                                 mymaxY=window.innerHeight-(rect.height)/2;
-                                //for this maxY - calculater the max and min X values
-                                mymaxX=centerofsteeringcircleY+Math.sqrt((150*150)-(Math.pow((mymaxY-centerofsteeringcircleY),2)));
-                                myminX=centerofsteeringcircleY-Math.sqrt((150*150)-(Math.pow((mymaxY-centerofsteeringcircleY),2)));
-                                myoffsetfromcontainerX=rect.left-rect1.left;
-                                myoffsetfromcontainerY=rect.top-rect1.top;
+//                                myoffsetfromcontainerX=rect.left-rect1.left;
+//                                myoffsetfromcontainerY=rect.top-rect1.top;
+                myoffsetfromcontainerX = draggable.offsetLeft;
+                myoffsetfromcontainerY=draggable.offsetTop;
                 
                                 p1={
 							   x:touchstartX,
 							   y:touchstartY
 							   };
-							   console.log("touchstartx="+touchstartX+", touchstartY="+touchstartY+", myoffsetX="+myoffsetfromcontainerX+", myoffsetY="+myoffsetfromcontainerY+", mymaxY="+mymaxY);
-							   }, false);
+//							   console.log("touchstartx="+touchstartX+", touchstartY="+touchstartY+", myoffsetX="+myoffsetfromcontainerX+", myoffsetY="+myoffsetfromcontainerY+", mymaxY="+mymaxY);
+							   }, true);
 
 							   draggable.addEventListener('touchmove', function(event) {
 														  var touch = event.targetTouches[0];
                                                             //get the x point of touch;
                                                             myX = touch.pageX;
-                                                            myY = touch.pageY;
-                                                            //steering knob can go radius of steering-outer-circle in x direction
-                                                            if (myminX<myX<mymaxX)
-                                                                {
-                                                                    //calculate corresponding myY value
-                                                                    myY=centerofsteeringcircleY-Math.sqrt((150*150)-(Math.pow((myX-centerofsteeringcircleX),2)));
-                                                                    
-                                                                }
-                                                            //if out of bounds, steering knob will fall below the horizon
-                                                            else
-                                                                {
-                                                                    //y will the same as mymaxY;
-                                                                    myY=mymaxY;
-                                                                    //change myX -if it is less than center then min else max
-                                                                    if(myX>centerofsteeringcircleX){
-                                                                        //moving rightwards
-                                                                        myX=mymaxX;
-                                                                        
-                                                                    }
-                                                                    else
-                                                                        { 
-                                                                            myX=myminX;
-                                                                            
-                                                                        }
-                                                                }
+                                                            myY=centerofsteeringcircleY-Math.sqrt((150*150)-(Math.pow((myX-centerofsteeringcircleX),2)));
                                                             
-                                                            //Now - move the knob to myX and myY
-                                                           
-														  //new center position 
-                                                        //newcenterX=touchstartX+(myX-touchstartX);
-                                                        //newcenterY=touchstartY+(myY-touchstartY);
-                                                        
-                                                        draggable.style.left = myoffsetfromcontainerX+(myX-touchstartX)+'px';
-														  draggable.style.top = myoffsetfromcontainerY+(myY-touchstartY)+'px';
                                                             
-//                                                            draggable.style.left = draggable.offsetLeft+(myX-touchstartX)+'px';
-//                                                            draggable.style.top = draggable.offsetTop+(myY-touchstartY)+'px';  
-                                                            console.log("myX="+myX);
+                                   
+                                        
+                                   //check if falling below horizon
+                                   if (myY<mymaxY)
+                                                                {
+                                             draggable.style.left = myoffsetfromcontainerX+(myX-touchstartX)+'px';
+								            draggable.style.top = myoffsetfromcontainerY+(myY-touchstartY)+'px';
+                                                                                //calculate angle off center at current position
+                                   myangle=(135-Math.abs(parseInt(Math.atan2(myY - centerofsteeringcircleY, myX - centerofsteeringcircleX) * 180 / Math.PI)))*2;
+                       
+                                                             
+                                                                }
+
+ 
+/*                                                            console.log("myX="+myX);
                                                             console.log("myY="+myY);
                                                             console.log("touchstartX="+touchstartX);
                                                             console.log("touchstartY="+touchstartY);
                                                             console.log("knob left="+(rect.left+(myX-touchstartX)));
                                                             console.log("knob top="+(rect.top+(myY-touchstartY)));
-                                                            
+                                                            console.log(myangle);
 
-
+*/
 
 														  event.preventDefault();
-														  }, false);
-								        
+														  }, true);
+                
+						draggable.addEventListener('touchend', function(event) {doSend("<W-"+myangle+">");	},true);	        
 
 /*
 works on chrome 52 on android (GalaxyS5). I think beyond chrome 60 - needs window.isSecureContext to be true - for access to sensors

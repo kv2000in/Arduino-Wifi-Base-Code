@@ -168,13 +168,13 @@ N-O Siren turn off Returns N-O:OK
 #define pinINA1              7    //Atmega pin PD7
 #define pinINA2              8    //Atmega pin PB0
 //Will have to tie ENA and ENB together. - Can control only 1 motor with PWM in this config.
-#define pinENB               9    //Atmega pin PB1 //PWM pin, grouped with pin 10
+#define pinENB               6    //Atmega pin PD6 //PWM pin, grouped with pin 5
 #define pinINB1              12   //Atmega pin PB4
 #define pinINB2              13   //Atmega pin PB5
 
 //HCSR04 definitions
-#define pinTRIG   9
-#define pinECHO   10
+#define pinTRIG   9 //Since using servo library - can't use PWM on D9-D10, Timer OC1A/B. Can probably still use it digital I/O pins. Not tested. Alternative is using A4 (18) and A5(19)
+#define pinECHO   10 
 long duration,distance;
 
 

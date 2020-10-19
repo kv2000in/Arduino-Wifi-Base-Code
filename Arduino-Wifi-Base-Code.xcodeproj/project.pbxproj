@@ -20,12 +20,14 @@
 		2A1D31E7252961F4005AAC71 /* move.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = move.sh; sourceTree = "<group>"; };
 		2A1D31E8252AE02E005AAC71 /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
 		2A1D31E92533CE41005AAC71 /* script.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = script.js; sourceTree = "<group>"; };
+		2A1D31EA253A98CD005AAC71 /* manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = manifest.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
 		2A1D31D525279E1C005AAC71 = {
 			isa = PBXGroup;
 			children = (
+				2A1D31EA253A98CD005AAC71 /* manifest.json */,
 				2A1D31E92533CE41005AAC71 /* script.js */,
 				2A1D31E125279ED9005AAC71 /* ESP */,
 				2A1D31E8252AE02E005AAC71 /* index.html */,

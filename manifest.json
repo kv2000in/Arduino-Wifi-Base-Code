@@ -1,0 +1,8 @@
+{
+	"name": "myROVER",
+	"short_name": "myrover",
+	"description": "A simple rover controller app.",
+	"display": "standalone",
+	"scope": "/",
+	"orientation":  "landscape"
+}
