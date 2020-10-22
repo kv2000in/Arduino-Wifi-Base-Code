@@ -90,6 +90,25 @@ overflow: auto;
                     transform: translateY(-26px);
                 }
 */
+            .sliderbuttons
+            {
+                position: absolute;
+                bottom:0%;
+                width:100%;
+                height:20%;
+            }
+            .slidercolumn
+            {
+                width:49%;
+                    height:100%;
+                position: relative;
+            }
+            .fuelgaugecolumn
+            {
+                width:49%;
+                height:100%;
+                    
+            }
                 .individual-status-lights
                 {
                     width:100%;
@@ -207,6 +226,7 @@ overflow: auto;
 				align-self: center;
 				height:100%;
 				margin:0 auto;  
+                    display: flex;
                 }
             .steering-container 
 			{
@@ -215,6 +235,12 @@ overflow: auto;
                 bottom:-50px;
 				
 			}
+            .steeringbuttonswrapper
+            {
+                    position: absolute;
+                    top: 21%;
+                    left: 40%;
+            }
 			/*    CSS for Outer ring of joystick*/  
 			.steering-outer-circle 
 			{
@@ -349,7 +375,12 @@ overflow: auto;
                     <div class="steering-container" id="steering-container">
 				        <div class="steering-outer-circle" id="steering-outer-circle">
 <!--                            <div class="steering-inner-circle" id="steering-inner-circle"></div>-->
-                            <div class ="steering-knob" id="steering-knob"></div></div>
+                            <div class ="steering-knob" id="steering-knob"></div>
+                            <div class = "steeringbuttonswrapper">
+                            <button class ="genericbuttons" id = "trimset">Trim</button>
+                          <button class ="genericbuttons" id = "gotomiddle">Mid</button>    
+                        </div>
+                            </div>
 			         </div>
                 </div>
                 <div class="twenty vertical3slider" id = "gearA">
@@ -382,9 +413,10 @@ overflow: auto;
                     </div>
                 </div>
                 <div class="twenty verticalslider" id = "bottom-left">
-                                        <button class = "gearbuttons" id="speedcontrol" onclick='doSend("<S-"+PWMAMIN+">")'>
+                    <div class="slidercolumn" id="slidercolumnA"><button class = "sliderbuttons" id="speedcontrolA" onclick='doSend("<S-"+PWMAMIN+">")'>
                     S
-                    </button>
+                    </button></div><div class="fuelgaugecolumn"><div class="fuelgaugecolumnstatus" id = "motorAspeed"></div></div>
+                                        
                 
                 </div>
                 
@@ -398,21 +430,38 @@ overflow: auto;
 	</body>
 	
 	<script>
-		
-		var touchstartX;
-		var touchstartY;
-		var rect;
-		var p1;
-		var p2;
-		var x,y;
-		var PWMAMAX;
+        
+ /*       For eventhandler passive support option, see here: https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
+        */
+        
+        
+        let passiveSupported = false;
+
+        try {
+    const options = {
+    get passive() { // This function will be called when the browser
+                    //   attempts to access the passive property.
+      passiveSupported = true;
+      return false;
+    }
+  };
+
+  window.addEventListener("test", null, options);
+  window.removeEventListener("test", null, options);
+} catch(err) {
+  passiveSupported = false;
+}
+
+        
+        
+        var PWMAMAX;
         var PWMBMAX;
         var PWMAMIN;
         var PWMBMIN;
         var PWMA;
         var PWMB;
-        var steeringanlgesteps;
-        var currentsteeringangle;
+        var PWMASTEPS = 5;
+        var PWMBSTEPS = 10;
         var previousY =0;
         var smartbattery=false;
         var q = setInterval(getbatteryinfo, 10000); 
@@ -461,27 +510,27 @@ function response_based_on_first_char(mylocalvar){
     {
         //PWMAMAX
         case ("H"):
-            PWMAMAX=mylocalvar.split("-")[1];
+            PWMAMAX=Number(mylocalvar.split("-")[1]);
             break;
         //PWMBMAX
         case ("h"):
-            PWMBMAX=mylocalvar.split("-")[1];
+            PWMBMAX=Number(mylocalvar.split("-")[1]);
             break;
         //PWMAMIN    
         case ("L"):
-            PWMAMIN=mylocalvar.split("-")[1];
+            PWMAMIN=Number(mylocalvar.split("-")[1]);
             break;
         //PWMBMIN    
         case ("l"):
-            PWMBMIN=mylocalvar.split("-")[1];
+            PWMBMIN=Number(mylocalvar.split("-")[1]);
             break;
         //PWMA    
         case ("S"):
-            PWMA=mylocalvar.split("-")[1];
+            PWMA=Number(mylocalvar.split("-")[1]);
             break;
         //PWMB    
         case ("s"):
-            PWMB=mylocalvar.split("-")[1];
+            PWMB=Number(mylocalvar.split("-")[1]);
             break;
         //Commands    
         case ("C"):
@@ -550,7 +599,8 @@ function response_based_on_first_char(mylocalvar){
     }
 }
 
-	
+var steeringanlgesteps =30;	
+var previoussentangle=0;
 function handleOrientation(event) {
   var y = event.gamma;
     var z = event.alpha;
@@ -579,7 +629,7 @@ function handleOrientation(event) {
     //get center coordinates of the steering-outer-circle
     var centerofsteeringcircleX;
     var centerofsteeringcircleY;
-    var rect1;
+    var rect1 = outer.getBoundingClientRect();
     var rect;
     var myX;
     var myY;
@@ -587,7 +637,6 @@ function handleOrientation(event) {
     var myoffsetfromcontainerY;
     var mymaxY;
     var myangle;
-    rect1=outer.getBoundingClientRect();
     centerofsteeringcircleX = rect1.left+((rect1.right -rect1.left)/2);
     centerofsteeringcircleY= rect1.top+((rect1.bottom -rect1.top)/2);
         
@@ -606,12 +655,10 @@ function handleOrientation(event) {
                 myoffsetfromcontainerX = draggable.offsetLeft;
                 myoffsetfromcontainerY=draggable.offsetTop;
                 
-                                p1={
-							   x:touchstartX,
-							   y:touchstartY
-							   };
+
 //							   console.log("touchstartx="+touchstartX+", touchstartY="+touchstartY+", myoffsetX="+myoffsetfromcontainerX+", myoffsetY="+myoffsetfromcontainerY+", mymaxY="+mymaxY);
-							   }, true);
+							   }, passiveSupported
+                               ? { passive: true } : false);
 
 							   draggable.addEventListener('touchmove', function(event) {
 														  var touch = event.targetTouches[0];
@@ -633,7 +680,12 @@ function handleOrientation(event) {
                                                              
                                                                 }
 
- 
+                                    
+                                   if(Math.abs(myangle-previoussentangle)>steeringanlgesteps){
+                                       doSend("<W-"+myangle+">");	
+                                       previoussentangle=myangle;
+                                       
+                                   }
 /*                                                            console.log("myX="+myX);
                                                             console.log("myY="+myY);
                                                             console.log("touchstartX="+touchstartX);
@@ -645,9 +697,13 @@ function handleOrientation(event) {
 */
 
 														  event.preventDefault();
-														  }, true);
+														  }, passiveSupported
+                               ? { passive: true } : false);
                 
-						draggable.addEventListener('touchend', function(event) {doSend("<W-"+myangle+">");	},true);	        
+						draggable.addEventListener('touchend', function(event) {
+                        //console.log("touch ended");
+                        },passiveSupported
+                               ? { passive: true } : false);	        
 
 /*
 works on chrome 52 on android (GalaxyS5). I think beyond chrome 60 - needs window.isSecureContext to be true - for access to sensors
@@ -656,8 +712,73 @@ secure context means everything has to be ssl. Doesn't work even if I save the f
         
 window.addEventListener('deviceorientation', handleOrientation);
 
+var mysliderA = document.getElementById('speedcontrolA');
+var mysliderB = document.getElementById('speedcontrolB');
+
+//sliderbasefunction returns at what percent of total slidable height -is the slider at
+function sliderbasefunction(event,whocalledme,whichelement){
+var mytotalheight;
+var myminY;
+var mymaxY;
+var mytouchY;  
+var myouterboundrect=document.getElementById('slidercolumn'+whichelement).getBoundingClientRect();
+//var myslider = document.getElementById('speedcontrol'+whichelement);
+var mysliderrect=whocalledme.getBoundingClientRect();
+mytotalheight= myouterboundrect.height;
+myminY = myouterboundrect.top+(mysliderrect.height/2);
+mymaxY = myminY+(mytotalheight-mysliderrect.height);
+var myslidertouch = event.targetTouches[0];
+                 mytouchY = myslidertouch.pageY;
+            if (mytouchY >= myminY && mytouchY <= mymaxY)
+                {
+
+                //move whocalledme to mytouchY
+                
+                var mypercentageslide = ((mymaxY-mytouchY)/(mymaxY-myminY))*100;
+                var mystylefromtop;
+                if ((80-mypercentageslide)>0){mystylefromtop = 80-mypercentageslide;} else {mystylefromtop = 0;}
+                whocalledme.style.top=mystylefromtop+'%';
+                                     //console.log("mytouchY="+mytouchY+" myminY="+myminY+" mymaxy="+mymaxY+" mypercentageslide ="+mypercentageslide+" style from top % ="+mystylefromtop);
+                
+                
+                return Math.round(mypercentageslide);
+                }
+    else {
+        //sliding out of bounds
+        return -1;
         
-    var onlongtouch; 
+    }
+    
+}
+
+
+/*mysliderA.addEventListener('touchstart',function(event){
+
+        console.log("Touch start");
+        },passiveSupported
+                               ? { passive: true } : false);*/
+        
+var mypreviousPWMAsent = 0;
+var mypreviousPWMBsent = 0;
+var valuetosend;
+mysliderA.addEventListener('touchmove',function(event){
+   var whatpercentslide = sliderbasefunction(event,this,"A");
+    if ((whatpercentslide>0) && iswebsocketconnected){
+     valuetosend= Math.round(PWMAMIN+((PWMAMAX-PWMAMIN)*(whatpercentslide/100)));
+     //console.log("whatpercentslide = "+whatpercentslide+ "valuetosend ="+valuetosend+"PWMAMAX = "+PWMAMAX+ "PWMAMIN = "+PWMAMIN);
+   if (Math.abs(Number(valuetosend)-Number(mypreviousPWMAsent))>Number(PWMASTEPS)){
+    
+        
+    doSend("<S-"+valuetosend+">");
+    //console.log("<S-"+valuetosend+">");
+    mypreviousPWMAsent=valuetosend;
+    }
+        
+    }
+},passiveSupported
+                               ? { passive: true } : false);
+
+        var onlongtouch; 
 	var timer;
 	var touchduration = 750; //length of time we want the user to touch before we do something
 	
@@ -672,42 +793,22 @@ window.addEventListener('deviceorientation', handleOrientation);
 			if (timer)
 			clearTimeout(timer); // clearTimeout, not cleartimeout..
 	}
-	
-	onlongtouch=function(id,val) { //do something 
-		
-		/*    long press but val is empty - send to the preset function*/
-		if (val==""){
-			preset(id,val);
-		} else {
-			/* so, val is not empty -u long pressed- do you want to delete this preset or you want to update?*/
-			
-			/* var preset_name=prompt(" ई वाला जगह के Delete कर दिहल जाओ?" , val);*/
-			var preset_name=prompt("Delete this preset" , val);
-			if (preset_name==null || preset_name==""){
-				/*  user cancelled the prompt*/
-			} else {
-				
-				/* Save the preset */
-				doSend("d-"+preset_name);
-				/*               After sending the save command - request a new list to update the preset buttons*/
-				/*  Set the deleted input element back to type text*/
-				/* document.getElementById(id).type="text";*/
-				/*       This didn't work -so when hadnling the list  - set all inputs to text*/
-				
-				doSend("l-preset");
-			}
-			
-		}
-    }
+	/*
+    //if holding the steering knob for longer than 750 ms, send the current angle. 
+	onlongtouch=doSend("<W-"+myangle+">");*/
+        
+
 		
 var websock;
+var iswebsocketconnected=false;
 function doConnect()
   {
        // websock = new WebSocket('ws://' + window.location.hostname + ':8000/');
         websock = new WebSocket('ws://192.168.4.1:8000/');
         websock.onopen = function(evt) 
             { 
-                console.log('websock open');  
+                console.log('websock open'); 
+                iswebsocketconnected=true;
                 if(smartbattery)
                     {
                         doSend("<A-D>"); //Send adjust PWM Digital on connecting }
@@ -722,6 +823,7 @@ function doConnect()
 																				
         websock.onclose = function(evt) 
             { 
+            iswebsocketconnected=false;
             console.log('websock close'); 
 		
             }
@@ -744,9 +846,20 @@ function doClose()
 }
 function doSend(message)
 {
-		/*console.log("sent: " + message + '\n');*/
-		/* writeToScreen("sent: " + message + '\n'); */
-websock.send(message);
+
+
+    if(iswebsocketconnected==true)
+    {
+        if(websock.readyState==websock.OPEN){
+        websock.send(message);
+    
+        
+        }
+        else {
+            
+            console.log("websocket is in an indeterminate state");
+        }
+    }
 }
 
 
