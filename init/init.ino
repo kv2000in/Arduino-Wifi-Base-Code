@@ -55,7 +55,12 @@ K-O LEDs turn off Returns K-O:OK
 N-N Siren turn on Returns N-N:OK
 N-O Siren turn off Returns N-O:OK
 
+D-X returns distance read by HCSR04 as D-124:OK
 
+0-X returns counter0 value as 0-2333:OK
+1-X returns counter1 value as 1-2344:OK
+0-0 sets counter0 to 0 and returns 0-0:OK
+1-0 sets counter1 to 0 and returns 1-0:OK
 */
 
 
@@ -167,7 +172,6 @@ N-O Siren turn off Returns N-O:OK
 #define pinENA               5    //Atmega pin PD5 //PWM pin, grouped with pin 6
 #define pinINA1              7    //Atmega pin PD7
 #define pinINA2              8    //Atmega pin PB0
-//Will have to tie ENA and ENB together. - Can control only 1 motor with PWM in this config.
 #define pinENB               6    //Atmega pin PD6 //PWM pin, grouped with pin 5
 #define pinINB1              12   //Atmega pin PB4
 #define pinINB2              13   //Atmega pin PB5
@@ -490,10 +494,31 @@ void obstacle(){
   
   duration = pulseIn(pinECHO, HIGH);
   distance = (duration/2) / 29.1;
-  Serial.print("<");
+  Serial.print("<D-");
   Serial.print(distance);
-  Serial.print(">");
+  Serial.print(":OK>");
   }  
+
+void sendcounter0value(char doizero)
+{
+ if (doizero=='0'){
+  counter0=0;
+  }
+ encoder0Position=counter0;
+  Serial.print("<0-");
+  Serial.print(encoder0Position);
+  Serial.print(":OK>");
+  }
+ void sendcounter1value(char doizero)
+{
+  if (doizero=='0'){
+  counter1=0;
+  }
+  encoder1Position=counter1;
+  Serial.print("<1-");
+  Serial.print(encoder1Position);
+  Serial.print(":OK>");
+  }
 
 //Analog read battery pin voltage using ADC, returns battery voltage in mVs.
 int readbatteryvoltage(char isWSrequestingthis){
@@ -647,7 +672,9 @@ void showNewData() {
         if(receivedChars[0]=='Z'){moveauxservoZ(receivedChars+2);}
         if(receivedChars[0]=='K'){toggleledlights(receivedChars[2]);}
         if(receivedChars[0]=='N'){togglesiren(receivedChars[2]);}
-        
+        if(receivedChars[0]=='0'){sendcounter0value(receivedChars[2]);}
+        if(receivedChars[0]=='1'){sendcounter1value(receivedChars[2]);}
+        if(receivedChars[0]=='D'){obstacle();}
         newData = false;
     }
 }

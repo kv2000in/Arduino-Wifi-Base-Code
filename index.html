@@ -36,8 +36,12 @@ N-N Siren turn on Returns N-N:OK
 N-O Siren turn off Returns N-O:OK
 
 
+D-X returns distance read by HCSR04 as D-124:OK
 
-
+0-X returns counter0 value as 0-2333:OK
+1-X returns counter1 value as 1-2344:OK
+0-0 sets counter0 to 0 and returns 0-0:OK
+1-0 sets counter1 to 0 and returns 1-0:OK
 
 
 -->
@@ -321,9 +325,14 @@ overflow: auto;
             
         </div>    
         <div class ="half" id="top-half">
-                <div class="twenty vertical3slider" id = "top-left-1">                                        <button class = "gearbuttons" id="speedcontrol" onclick='doSend("<s-"+PWMBMIN+">")'>
-                    s
-                    </button></div>
+                <div class="twenty vertical3slider" id = "top-left-1">                                       
+                                        <div class="slidercolumn" id="slidercolumnB"><button class = "sliderbuttons" id="speedcontrolB">
+                    S
+                    </button></div><div class="fuelgaugecolumn"><div class="fuelgaugecolumnstatus" id = "motorBspeed"></div></div>
+                                        
+                
+            
+            </div>
                 <div class="twenty vertical3slider" id = "top-left-2" id="gearB">
             
                             <div class = "three-slider" id="gearBslider">
@@ -413,7 +422,7 @@ overflow: auto;
                     </div>
                 </div>
                 <div class="twenty verticalslider" id = "bottom-left">
-                    <div class="slidercolumn" id="slidercolumnA"><button class = "sliderbuttons" id="speedcontrolA" onclick='doSend("<S-"+PWMAMIN+">")'>
+                    <div class="slidercolumn" id="slidercolumnA"><button class = "sliderbuttons" id="speedcontrolA">
                     S
                     </button></div><div class="fuelgaugecolumn"><div class="fuelgaugecolumnstatus" id = "motorAspeed"></div></div>
                                         
@@ -461,14 +470,26 @@ overflow: auto;
         var PWMA;
         var PWMB;
         var PWMASTEPS = 5;
-        var PWMBSTEPS = 10;
+        var PWMBSTEPS = 5;
         var previousY =0;
         var smartbattery=false;
+        var rpmenabled = true;
+        var encoder0ppr = 20;
+        var encoder1ppr = 20;
+        var encoder0prevreading=0;
+        var encoder1prevreading=0;
+        var currentrpmA=0;
+        var currentrpmB=0;
+        var checkrpminterval=500;
+        var checkobstacelenabled=true;
+        var checkobstacleinterval=500;
+        var obstacledistance=0; 
         var q = setInterval(getbatteryinfo, 10000); 
+        var checkingrpmA;
+        var checkingrpmB;
+        var checkingobstacle;
 
-
-function getbatteryinfo()
-        {
+function getbatteryinfo(){
             smartbattery=document.getElementById("isitasmartbattery").checked;
             if(smartbattery){
                 doSend("<B-V>");
@@ -483,6 +504,8 @@ function getbatteryinfo()
                 doSend("<b-V>");
             }
         }
+    
+
 function parse_incoming_websocket_messages(data){
     //Data is S-255:OK or S-255:FAIL or C-F:OK or C-F:FAIL
     //Determine if it is OK response or FAIL response, splice it on ":", log it if it is FAIL, proceed if it is OK
@@ -500,6 +523,100 @@ function parse_incoming_websocket_messages(data){
             document.getElementById("mylocalconsole").innerHTML=data;
             break;
             
+    }
+    
+}
+
+function checkrpm(whichencoder,zeroornot){
+    if(rpmenabled){
+        if (zeroornot=="0"){
+            if (whichencoder=="0"){
+              encoder0prevreading=0;  
+            }
+            else if (whichencoder=="1"){
+                encoder1prevreading=0;
+                
+            }
+            
+        }
+        doSend("<"+whichencoder+"-"+zeroornot+">");
+        
+    }
+    
+}
+
+function handlerpm(whichencoder,value){
+ switch(whichencoder){
+     case ("0"):
+        currentrpmA= ((value-encoder0prevreading)*(1000/checkrpminterval)*60)/encoder0ppr;
+        encoder0prevreading=value;
+         break;
+     case ("1"):
+        currentrpmB= ((value-encoder1prevreading)*(1000/checkrpminterval)*60)/encoder1ppr;
+        encoder1prevreading=value;
+         break;
+     
+    default:
+    console.log(whichencoder,value);
+    break;
+ }
+    
+}
+
+function handleobstacle(startorend){
+    if(checkobstacelenabled){
+        
+    
+    if (startorend=="start"){
+        checkingobstacle=setInterval(doSend,checkobstacleinterval,"<D-X>");
+    }
+    else if (startorend=="end")
+        {
+            clearInterval(checkingobstacle);
+        }
+        
+}
+    
+    }
+        
+function handlereturnsfromcommands(whichcommand){
+
+    
+    //C-F:OK , OK has been dealt with, C has been dealt with, now deal with F
+    switch(whichcommand){
+        case("F"):
+            //Motor A is rotating forward, change the status light and calculate RPM/Speed if RPM is enabled 
+            checkrpm("0","0");
+            checkingrpmA = setInterval(checkrpm,checkrpminterval,"0","X");
+            handleobstacle("start");
+            break;
+        case("f"):
+            //Motor B is rotating forward, change the status light and calculate RPM/Speed if RPM is enabled
+            checkrpm("1","0");
+            checkingrpmB = setInterval(checkrpm,checkrpminterval,"1","X");
+            break;
+        case("R"):
+            //Motor A is rotating reverse, change the status light and calculate RPM/Speed if RPM is enabled
+            checkrpm("0","0");
+            checkingrpmA = setInterval(checkrpm,checkrpminterval,"0","X");
+            break;
+        case("r"):
+            //Motor B is rotating reverse, change the status light and calculate RPM/Speed if RPM is enabled
+            checkrpm("1","0");
+            checkingrpmB = setInterval(checkrpm,checkrpminterval,"1","X");
+            break;
+        case("X"):
+            //Motor A is stopped change the status light and disable RPM
+            clearInterval(checkingrpmA);
+            handleobstacle("end");
+            break;
+        case("x"):
+            //Motor B is stopped, change the status light and disable RPM.
+            clearInterval(checkingrpmB);
+            break;
+        default:
+        console.log(whichcommand);
+        break;
     }
     
 }
@@ -534,7 +651,7 @@ function response_based_on_first_char(mylocalvar){
             break;
         //Commands    
         case ("C"):
-            document.getElementById("mylocalconsole").innerHTML=mylocalvar;
+            handlereturnsfromcommands(mylocalvar.split("-")[1]);
             break;
         //Servo W angle    
         case ("W"):
@@ -591,6 +708,18 @@ function response_based_on_first_char(mylocalvar){
         //Truck siren
         case ("N"):
             document.getElementById("mylocalconsole").innerHTML=mylocalvar;
+            break;
+        //encoder0 reading
+        case ("0"):
+            handlerpm("0",Number(mylocalvar.split("-")[1]));
+            break;
+        //encoder1 reading
+        case ("1"):
+            handlerpm("1",Number(mylocalvar.split("-")[1]));
+            break;
+        //obstacle reading
+        case ("D"):
+            obstacledistance=Number(mylocalvar.split("-")[1]);
             break;
             
         default:
@@ -696,7 +825,7 @@ function handleOrientation(event) {
 
 */
 
-														  event.preventDefault();
+														  //event.preventDefault();
 														  }, passiveSupported
                                ? { passive: true } : false);
                 
@@ -760,24 +889,45 @@ var myslidertouch = event.targetTouches[0];
         
 var mypreviousPWMAsent = 0;
 var mypreviousPWMBsent = 0;
-var valuetosend;
+var valuetosendA =0;
+var valuetosendB =0;
 mysliderA.addEventListener('touchmove',function(event){
    var whatpercentslide = sliderbasefunction(event,this,"A");
     if ((whatpercentslide>0) && iswebsocketconnected){
-     valuetosend= Math.round(PWMAMIN+((PWMAMAX-PWMAMIN)*(whatpercentslide/100)));
+     valuetosendA= Math.round(PWMAMIN+((PWMAMAX-PWMAMIN)*(whatpercentslide/100)));
      //console.log("whatpercentslide = "+whatpercentslide+ "valuetosend ="+valuetosend+"PWMAMAX = "+PWMAMAX+ "PWMAMIN = "+PWMAMIN);
-   if (Math.abs(Number(valuetosend)-Number(mypreviousPWMAsent))>Number(PWMASTEPS)){
+   if (Math.abs(valuetosendA-mypreviousPWMAsent)>Number(PWMASTEPS)){
     
         
-    doSend("<S-"+valuetosend+">");
+    doSend("<S-"+valuetosendA+">");
     //console.log("<S-"+valuetosend+">");
-    mypreviousPWMAsent=valuetosend;
+    mypreviousPWMAsent=valuetosendA;
     }
         
     }
 },passiveSupported
                                ? { passive: true } : false);
 
+    
+        
+mysliderB.addEventListener('touchmove',function(event){
+   var whatpercentslide = sliderbasefunction(event,this,"B");
+    if ((whatpercentslide>0) && iswebsocketconnected){
+     valuetosendB= Math.round(PWMBMIN+((PWMBMAX-PWMBMIN)*(whatpercentslide/100)));
+     //console.log("whatpercentslide = "+whatpercentslide+ "valuetosend ="+valuetosend+"PWMAMAX = "+PWMAMAX+ "PWMAMIN = "+PWMAMIN);
+   if (Math.abs(Number(valuetosendB)-Number(mypreviousPWMBsent))>Number(PWMBSTEPS)){
+    
+        
+    doSend("<s-"+valuetosendB+">");
+    //console.log("<S-"+valuetosend+">");
+    mypreviousPWMBsent=valuetosendB;
+    }
+        
+    }
+},passiveSupported
+                               ? { passive: true } : false);     
+        
+        
         var onlongtouch; 
 	var timer;
 	var touchduration = 750; //length of time we want the user to touch before we do something
