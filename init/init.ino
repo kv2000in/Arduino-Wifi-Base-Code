@@ -129,6 +129,7 @@ D-X returns distance read by HCSR04 as D-124:OK
 //BUS MAPPINGS FROM SMBus PROTOCOL DOCUMENTATION
 #define BATTERY_MODE             0x03
 #define CURRENT                  0x0A
+#define AVERAGE_CURRENT          0x0B
 #define RELATIVE_SOC             0x0D
 #define ABSOLUTE_SOC             0x0E
 #define TIME_TO_FULL             0x13
@@ -153,6 +154,7 @@ D-X returns distance read by HCSR04 as D-124:OK
 #define SAFETY_ALERT             0x50
 #define SAFETY_STATUS            0x51
 #define PACK_VOLTAGE             0x5A
+#define AVERAGE_VOLTAGE          0x5D
 #define PERM_FAILURE_STATUS      0x53
 #define RESET_DATA               0x57
 #define WD_RESET_DATA            0x58
@@ -170,14 +172,14 @@ D-X returns distance read by HCSR04 as D-124:OK
 
 //L293D pins
 #define pinENA               5    //Atmega pin PD5 //PWM pin, grouped with pin 6
-#define pinINA1              7    //Atmega pin PD7
+#define pinINA1              7   //Atmega pin PD7
 #define pinINA2              8    //Atmega pin PB0
 #define pinENB               6    //Atmega pin PD6 //PWM pin, grouped with pin 5
 #define pinINB1              12   //Atmega pin PB4
-#define pinINB2              13   //Atmega pin PB5
+#define pinINB2              13   //Atmega pin PB5 //also SCK for SPI
 
 //HCSR04 definitions
-#define pinTRIG   9 //Since using servo library - can't use PWM on D9-D10, Timer OC1A/B. Can probably still use it digital I/O pins. Not tested. Alternative is using A4 (18) and A5(19)
+#define pinTRIG   9 //Since using servo library - can't use PWM on D9-D10, Timer OC1A/B. Can probably still use it digital I/O pins.tested.seems to work
 #define pinECHO   10 
 long duration,distance;
 
@@ -187,7 +189,7 @@ Servo myservoW,myservoX,myservoY,myservoZ;
 #define pinSERVOW 15 //A1
 #define pinSERVOX 16 //A2
 #define pinSERVOY 17 //A3
-#define pinSERVOZ 4  //D4
+#define pinSERVOZ 4  //Atmega pin PD4 
 
 //Lights and Sounds Pins
 #define pinLIGHTS 6
@@ -449,6 +451,7 @@ int batteryinfo(char whichinfo){
     if(whichinfo=='V'){
     Serial.print("<V-");
     myvoltage = (int)fetchWord(BATT_SMBUS_VOLTAGE);
+    Serial.print(myvoltage);
     Serial.print(":OK>");
     }
     if(whichinfo=='T'){

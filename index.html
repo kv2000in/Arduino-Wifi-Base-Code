@@ -325,24 +325,11 @@ overflow: auto;
             
         </div>    
         <div class ="half" id="top-half">
-                <div class="twenty vertical3slider" id = "top-left-1">                                       
-                                        <div class="slidercolumn" id="slidercolumnB"><button class = "sliderbuttons" id="speedcontrolB">
-                    S
-                    </button></div><div class="fuelgaugecolumn"><div class="fuelgaugecolumnstatus" id = "motorBspeed"></div></div>
-                                        
-                
-            
-            </div>
-                <div class="twenty vertical3slider" id = "top-left-2" id="gearB">
+
+                <div class="twenty vertical3slider" id = "top-left-1" id="gearB">
             
                             <div class = "three-slider" id="gearBslider">
-<!--                    <label><input type = "checkbox" id = "forward-checkbox">-->
-<!--                    <div class="slider-knob" id = "gearsliderknob"></div>-->
-<!--
-                    <input type="checkbox" id="stop-checkbox">
-                    <input type="checkbox"id = "reverse-checkbox">
-                    </label>
--->
+
                     
                     <button class = "gearbuttons" id="forwardgearbuttonB" onclick='doSend("<C-f>")'>
                     F
@@ -366,41 +353,53 @@ overflow: auto;
             
             
             </div>
+                            <div class="twenty vertical2slider" id = "top-left-2">                                       
+                                        <div class="slidercolumn" id="slidercolumnB"><button class = "sliderbuttons" id="speedcontrolB">
+                    S
+                    </button></div><div class="fuelgaugecolumn"><div class="fuelgaugecolumnstatus" id = "motorBspeed">             </div></div>
+                                        
                 
-            <div class="twenty vertical3slider" id = "top-left-3">
-             <button class = "gearbuttons" id="speedcontrol" onclick='doConnect()'>
-                    Connect
-                    </button>
-            <button class = "gearbuttons" id="speedcontrol" onclick='doClose()'>
-                    Close
-                    </button>
+            
             </div>
-                <div class="twenty vertical2slider" id = "top-left-4"></div>
-                <div class="twenty vertical2slider" id = "top-left-5"></div>
+                
+            <div class="twenty vertical2slider" id = "top-left-3">
+                    <div class="slidercolumn" id="slidercolumnX"><button class = "sliderbuttons" id="speedcontrolX">
+                    X
+                    </button></div><div class="fuelgaugecolumn"><div class="fuelgaugecolumnstatus" id = "motorXspeed"></div></div>
+            </div>
+                <div class="twenty vertical2slider" id = "top-left-4">
+                                <div class="slidercolumn" id="slidercolumnY"><button class = "sliderbuttons" id="speedcontrolY">
+                    Y
+                    </button></div><div class="fuelgaugecolumn"><div class="fuelgaugecolumnstatus" id = "motorYspeed"></div></div>
+            </div>
+                <div class="twenty vertical2slider" id = "top-left-5">
+                                <div class="slidercolumn" id="slidercolumnZ"><button class = "sliderbuttons" id="speedcontrolZ">
+                    Z
+                    </button></div><div class="fuelgaugecolumn"><div class="fuelgaugecolumnstatus" id = "motorZspeed"></div></div>
+            </div>
             </div>
             <div class ="half bottom" id="bottom-half">
 
-                <div class="sixty" id = "bottom-middle"><div class="horizontalslider"></div>
+                <div class="sixty" id = "bottom-middle"><div class="horizontalslider">  <button class = "genericbuttons" id="connectWS" onclick='doConnect()'>
+                    Connect
+                    </button>
+            <button class = "genericbuttons" id="closeWS" onclick='doClose()'>
+                    Close
+                    </button>  <button class ="genericbuttons" id = "trimset">Trim</button>
+                          <button class ="genericbuttons" id = "gotomiddle">Mid</button> </div>
                     <div class="steering-container" id="steering-container">
 				        <div class="steering-outer-circle" id="steering-outer-circle">
 <!--                            <div class="steering-inner-circle" id="steering-inner-circle"></div>-->
                             <div class ="steering-knob" id="steering-knob"></div>
                             <div class = "steeringbuttonswrapper">
-                            <button class ="genericbuttons" id = "trimset">Trim</button>
-                          <button class ="genericbuttons" id = "gotomiddle">Mid</button>    
+                           
                         </div>
                             </div>
 			         </div>
                 </div>
                 <div class="twenty vertical3slider" id = "gearA">
                 <div class = "three-slider" id="gearAslider">
-<!--                    <label><input type = "checkbox" id = "forward-checkbox">-->
-<!--                    <div class="slider-knob" id = "gearsliderknob"></div>-->
-<!--
-                    <input type="checkbox" id="stop-checkbox">
-                    <input type="checkbox"id = "reverse-checkbox">
-                    </label>
--->
+
                     
                     <button class = "gearbuttons" id="forwardgearbuttonA" onclick='doSend("<C-F>")'>
                     F
@@ -677,9 +676,9 @@ function response_based_on_first_char(mylocalvar){
         case ("v"):
             document.getElementById("analogbatteryV").innerHTML=mylocalvar.split("-")[1];
             break;
-        //Battery smbus current
+        //Battery smbus current - current returns as -144 (negative 144) so its I--144 hence 2nd element.
         case ("I"):
-            document.getElementById("smbusbatteryI").innerHTML=mylocalvar.split("-")[1];
+            document.getElementById("smbusbatteryI").innerHTML=mylocalvar.split("-")[2];
             break;
         //Battery smbus remaining capacity (mAH)
         case ("R"):
@@ -841,15 +840,16 @@ secure context means everything has to be ssl. Doesn't work even if I save the f
         
 window.addEventListener('deviceorientation', handleOrientation);
 
-var mysliderA = document.getElementById('speedcontrolA');
-var mysliderB = document.getElementById('speedcontrolB');
+
 
 //sliderbasefunction returns at what percent of total slidable height -is the slider at
 function sliderbasefunction(event,whocalledme,whichelement){
 var mytotalheight;
 var myminY;
 var mymaxY;
-var mytouchY;  
+var mytouchY;
+var mystylefromtop;
+var mypercentageslide;
 var myouterboundrect=document.getElementById('slidercolumn'+whichelement).getBoundingClientRect();
 //var myslider = document.getElementById('speedcontrol'+whichelement);
 var mysliderrect=whocalledme.getBoundingClientRect();
@@ -863,48 +863,77 @@ var myslidertouch = event.targetTouches[0];
 
                 //move whocalledme to mytouchY
                 
-                var mypercentageslide = ((mymaxY-mytouchY)/(mymaxY-myminY))*100;
-                var mystylefromtop;
+                 mypercentageslide = ((mymaxY-mytouchY)/(mymaxY-myminY))*100;
+                
                 if ((80-mypercentageslide)>0){mystylefromtop = 80-mypercentageslide;} else {mystylefromtop = 0;}
                 whocalledme.style.top=mystylefromtop+'%';
                                      //console.log("mytouchY="+mytouchY+" myminY="+myminY+" mymaxy="+mymaxY+" mypercentageslide ="+mypercentageslide+" style from top % ="+mystylefromtop);
                 
                 
-                return Math.round(mypercentageslide);
+                
                 }
     else {
-        //sliding out of bounds
-        return -1;
+        
+        //sliding out of bounds - lower
+        if (mytouchY >= myminY){
+          whocalledme.style.top=80+'%';
+          mypercentageslide=0;
+        }
+        //sliding out of bounds - upper
+        else if (mytouchY <= mymaxY){
+            
+        whocalledme.style.top=0+'%';
+        mypercentageslide=100; 
+        }
+        
         
     }
-    
+    return Math.round(mypercentageslide);
 }
 
 
-/*mysliderA.addEventListener('touchstart',function(event){
+var mysliderA = document.getElementById('speedcontrolA');
+var mysliderB = document.getElementById('speedcontrolB');
+//servo sliders - somewhat similar to speed sliders so kept the same nomenclature
+var mysliderX = document.getElementById('speedcontrolX');
+var mysliderY = document.getElementById('speedcontrolY');
+var mysliderZ = document.getElementById('speedcontrolZ');
 
-        console.log("Touch start");
-        },passiveSupported
-                               ? { passive: true } : false);*/
-        
 var mypreviousPWMAsent = 0;
 var mypreviousPWMBsent = 0;
+var mypreviousvalueXsent=0;
+var mypreviousvalueYsent=0;
+var mypreviousvalueZsent=0;
 var valuetosendA =0;
 var valuetosendB =0;
+var valuetosendX=0;
+var valuetosendY=0;
+var valuetosendZ=0;
+var servoXmaxangle = 150;
+var servoXminangle = 30;
+var servoXanglesteps = 5;
+var servoYmaxangle = 150;
+var servoYminangle = 30;
+var servoYanglesteps = 5;
+var servoZmaxangle = 150;
+var servoZminangle = 30;
+var servoZanglesteps = 5;
+
+        
 mysliderA.addEventListener('touchmove',function(event){
    var whatpercentslide = sliderbasefunction(event,this,"A");
-    if ((whatpercentslide>0) && iswebsocketconnected){
+    
      valuetosendA= Math.round(PWMAMIN+((PWMAMAX-PWMAMIN)*(whatpercentslide/100)));
      //console.log("whatpercentslide = "+whatpercentslide+ "valuetosend ="+valuetosend+"PWMAMAX = "+PWMAMAX+ "PWMAMIN = "+PWMAMIN);
    if (Math.abs(valuetosendA-mypreviousPWMAsent)>Number(PWMASTEPS)){
     
         
     doSend("<S-"+valuetosendA+">");
-    //console.log("<S-"+valuetosend+">");
+    //console.log("<S-"+valuetosendA+">");
     mypreviousPWMAsent=valuetosendA;
     }
         
-    }
+    
 },passiveSupported
                                ? { passive: true } : false);
 
@@ -912,22 +941,67 @@ mysliderA.addEventListener('touchmove',function(event){
         
 mysliderB.addEventListener('touchmove',function(event){
    var whatpercentslide = sliderbasefunction(event,this,"B");
-    if ((whatpercentslide>0) && iswebsocketconnected){
+ 
      valuetosendB= Math.round(PWMBMIN+((PWMBMAX-PWMBMIN)*(whatpercentslide/100)));
      //console.log("whatpercentslide = "+whatpercentslide+ "valuetosend ="+valuetosend+"PWMAMAX = "+PWMAMAX+ "PWMAMIN = "+PWMAMIN);
    if (Math.abs(Number(valuetosendB)-Number(mypreviousPWMBsent))>Number(PWMBSTEPS)){
     
         
     doSend("<s-"+valuetosendB+">");
-    //console.log("<S-"+valuetosend+">");
+    //console.log("<s-"+valuetosendB+">");
     mypreviousPWMBsent=valuetosendB;
     }
         
-    }
+  
 },passiveSupported
                                ? { passive: true } : false);     
         
+ 
+mysliderX.addEventListener('touchmove',function(event){
+   var whatpercentslide = sliderbasefunction(event,this,"X");
+   
+     valuetosendX= Math.round(servoXminangle+((servoXmaxangle-servoXminangle)*(whatpercentslide/100)));
+   if (Math.abs(Number(valuetosendX)-Number(mypreviousvalueXsent))>Number(servoXanglesteps)){
+    
         
+    doSend("<X-"+valuetosendX+">");
+    console.log("<X-"+valuetosendX+">");
+    mypreviousvalueXsent=valuetosendX;
+    }
+        
+   
+},passiveSupported
+                               ? { passive: true } : false); 
+mysliderY.addEventListener('touchmove',function(event){
+   var whatpercentslide = sliderbasefunction(event,this,"Y");
+   
+     valuetosendY= Math.round(servoYminangle+((servoYmaxangle-servoYminangle)*(whatpercentslide/100)));
+   if (Math.abs(Number(valuetosendY)-Number(mypreviousvalueYsent))>Number(servoYanglesteps)){
+    
+        
+    doSend("<Y-"+valuetosendY+">");
+    console.log("<Y-"+valuetosendY+">");
+    mypreviousvalueYsent=valuetosendY;
+    }
+        
+  
+},passiveSupported
+                               ? { passive: true } : false); 
+mysliderZ.addEventListener('touchmove',function(event){
+   var whatpercentslide = sliderbasefunction(event,this,"Z");
+
+         valuetosendZ= Math.round(servoZminangle+((servoZmaxangle-servoZminangle)*(whatpercentslide/100)));
+   if (Math.abs(Number(valuetosendZ)-Number(mypreviousvalueZsent))>Number(servoZanglesteps)){
+    
+        
+    doSend("<Z-"+valuetosendZ+">");
+    console.log("<Z-"+valuetosendZ+">");
+    mypreviousvalueZsent=valuetosendZ;
+    }
+        
+  
+},passiveSupported
+                               ? { passive: true } : false); 
         var onlongtouch; 
 	var timer;
 	var touchduration = 750; //length of time we want the user to touch before we do something
