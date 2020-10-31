@@ -211,6 +211,12 @@ overflow: auto;
                 display: flex;
 
                 }
+            .genericbuttons{
+                
+                    height: 100%;
+    width: 24%;
+    border-radius: 10%;
+            }
                 .vertical2slider
                 {
                 position:relative;
@@ -385,8 +391,8 @@ overflow: auto;
                     </button>
             <button class = "genericbuttons" id="closeWS" onclick='doClose()'>
                     Close
-                    </button>  <button class ="genericbuttons" id = "trimset">Trim</button>
-                          <button class ="genericbuttons" id = "gotomiddle">Mid</button> </div>
+                    </button>  <button class ="genericbuttons" id = "trimset" onclick="setmidsteeringangle()">Trim</button>
+                          <button class ="genericbuttons" id = "gotomiddle" onclick="gotosteeringmidposition()">Mid</button> </div>
                     <div class="steering-container" id="steering-container">
 				        <div class="steering-outer-circle" id="steering-outer-circle">
 <!--                            <div class="steering-inner-circle" id="steering-inner-circle"></div>-->
@@ -471,7 +477,7 @@ overflow: auto;
         var PWMASTEPS = 5;
         var PWMBSTEPS = 5;
         var previousY =0;
-        var smartbattery=false;
+        var smartbattery;
         var rpmenabled = true;
         var encoder0ppr = 20;
         var encoder1ppr = 20;
@@ -483,7 +489,7 @@ overflow: auto;
         var checkobstacelenabled=true;
         var checkobstacleinterval=500;
         var obstacledistance=0; 
-        var q = setInterval(getbatteryinfo, 10000); 
+        var recurringbatteryinfo = setInterval(getbatteryinfo, 10000); 
         var checkingrpmA;
         var checkingrpmB;
         var checkingobstacle;
@@ -500,7 +506,9 @@ function getbatteryinfo(){
                 
             }
             else {
+                
                 doSend("<b-V>");
+                
             }
         }
     
@@ -727,9 +735,9 @@ function response_based_on_first_char(mylocalvar){
     }
 }
 
-var steeringanlgesteps =30;	
-var previoussentangle=0;
-function handleOrientation(event) {
+
+        
+/*function handleOrientation(event) {
   var y = event.gamma;
     var z = event.alpha;
      var x = event.beta;
@@ -743,7 +751,15 @@ function handleOrientation(event) {
     }
     
     
-}
+}*/
+        
+/*
+works on chrome 52 on android (GalaxyS5). I think beyond chrome 60 - needs window.isSecureContext to be true - for access to sensors
+secure context means everything has to be ssl. Doesn't work even if I save the file locally on the phone and just connect to websocket. On the other hand, saving it locally on the computer and using it - becomes a secure context and sensors can be accessed. Yes, macbook has orientation sensors too.
+
+        
+window.addEventListener('deviceorientation', handleOrientation);
+*/
 
 /*    with x1 and y1 being the coordinates of the center of a circle, (x-x1)^2+(y-y1)^2 = radius^2
     so for any given value of x, y = sqrt(radius^2-(x-x1)^2)+y1*/
@@ -765,6 +781,12 @@ function handleOrientation(event) {
     var myoffsetfromcontainerY;
     var mymaxY;
     var myangle;
+    var steeringanlgesteps =5;	
+    var previoussentangle=0;
+    var steeringrange=100; //50 degrees left and 50 degrees right.
+    var steeringservomidangle=90;
+    var steeringservomaxangle = 170; //don't go out of bounds else cheap servo can stall.
+    var steeringservominangle = 10;
     centerofsteeringcircleX = rect1.left+((rect1.right -rect1.left)/2);
     centerofsteeringcircleY= rect1.top+((rect1.bottom -rect1.top)/2);
         
@@ -802,27 +824,34 @@ function handleOrientation(event) {
                                                                 {
                                              draggable.style.left = myoffsetfromcontainerX+(myX-touchstartX)+'px';
 								            draggable.style.top = myoffsetfromcontainerY+(myY-touchstartY)+'px';
-                                                                                //calculate angle off center at current position
-                                   myangle=(135-Math.abs(parseInt(Math.atan2(myY - centerofsteeringcircleY, myX - centerofsteeringcircleX) * 180 / Math.PI)))*2;
+                                   
+                            
+/*                            calculate angle off center at current position
+                            myangle = -135(Left) to -45 (right). multiplied by 2 to get -270 to -90.
+                            convert to 0-180 by adding 270.
+                            Convert 180 scale to "Range" scale by *Range/180
+                            Shift the mid point of the scale so that Range/2 = midservoangle.*/
+                            myangle=parseInt((((Math.atan2(myY - centerofsteeringcircleY, myX - centerofsteeringcircleX) * 180 / Math.PI)*2)+270)*(steeringrange/180))+(steeringservomidangle-steeringrange/2);
                        
-                                                             
+                          
                                                                 }
 
                                     
+                                   
+                                   
+                                   
                                    if(Math.abs(myangle-previoussentangle)>steeringanlgesteps){
+                                      
+                                       //send command only if it is with in the bounds of the steering servo
+                                       if (myangle >= steeringservominangle && myangle <= steeringservomaxangle){
                                        doSend("<W-"+myangle+">");	
+                                      
                                        previoussentangle=myangle;
+                                        
+                                       }
                                        
                                    }
-/*                                                            console.log("myX="+myX);
-                                                            console.log("myY="+myY);
-                                                            console.log("touchstartX="+touchstartX);
-                                                            console.log("touchstartY="+touchstartY);
-                                                            console.log("knob left="+(rect.left+(myX-touchstartX)));
-                                                            console.log("knob top="+(rect.top+(myY-touchstartY)));
-                                                            console.log(myangle);
 
-*/
 
 														  //event.preventDefault();
 														  }, passiveSupported
@@ -833,14 +862,21 @@ function handleOrientation(event) {
                         },passiveSupported
                                ? { passive: true } : false);	        
 
-/*
-works on chrome 52 on android (GalaxyS5). I think beyond chrome 60 - needs window.isSecureContext to be true - for access to sensors
-secure context means everything has to be ssl. Doesn't work even if I save the file locally on the phone and just connect to websocket. On the other hand, saving it locally on the computer and using it - becomes a secure context and sensors can be accessed. Yes, macbook has orientation sensors too.
-*/
-        
-window.addEventListener('deviceorientation', handleOrientation);
-
-
+function setmidsteeringangle(){
+    if(myangle){
+    steeringservomidangle = myangle;
+    draggable.style.left = '100px';
+    draggable.style.top = '-50px';
+    }
+}
+function gotosteeringmidposition(){
+    draggable.style.left = '100px';
+    draggable.style.top = '-50px';
+    
+    
+    doSend("<W-"+steeringservomidangle+">");
+    
+}
 
 //sliderbasefunction returns at what percent of total slidable height -is the slider at
 function sliderbasefunction(event,whocalledme,whichelement){
@@ -965,7 +1001,7 @@ mysliderX.addEventListener('touchmove',function(event){
     
         
     doSend("<X-"+valuetosendX+">");
-    console.log("<X-"+valuetosendX+">");
+    //console.log("<X-"+valuetosendX+">");
     mypreviousvalueXsent=valuetosendX;
     }
         
@@ -980,7 +1016,7 @@ mysliderY.addEventListener('touchmove',function(event){
     
         
     doSend("<Y-"+valuetosendY+">");
-    console.log("<Y-"+valuetosendY+">");
+    //console.log("<Y-"+valuetosendY+">");
     mypreviousvalueYsent=valuetosendY;
     }
         
@@ -995,7 +1031,7 @@ mysliderZ.addEventListener('touchmove',function(event){
     
         
     doSend("<Z-"+valuetosendZ+">");
-    console.log("<Z-"+valuetosendZ+">");
+    //console.log("<Z-"+valuetosendZ+">");
     mypreviousvalueZsent=valuetosendZ;
     }
         
@@ -1049,6 +1085,11 @@ function doConnect()
             { 
             iswebsocketconnected=false;
             console.log('websock close'); 
+            //clear all the intervals
+            clearInterval(recurringbatteryinfo);
+            clearInterval(checkingobstacle);
+            clearInterval(checkingrpmA);
+            clearInterval(checkingrpmB);
 		
             }
         websock.onerror = function(evt) 
