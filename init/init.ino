@@ -49,6 +49,15 @@ X-135 sets servo X to 135 degrees, returns X-135:OK
 Y-135 sets servo Y to 135 degrees, returns Y-135:OK
 Z-135 sets servo Z to 135 degrees, returns Z-135:OK
 
+w-a attach servoW returns w-a:OK
+w-d detach servoW returns w-d:OK
+x-a attach servoX
+x-d detach servoX
+y-a attach servoY
+y-d detach servoY
+z-a attach servoZ
+z-d detach servoZ
+
 K-N LEDs turn on Returns K-N:OK
 K-O LEDs turn off Returns K-O:OK
 
@@ -224,15 +233,7 @@ long stepsA;
 long stepsB;
 char dirA;
 char dirB;
-/*
-Commands:
-C-F (Forward)
-D-89 (Steering servo to 89 degree angle)
-S-90 (Speed 90% of Max)
-B-V (Battery voltage)
-W-180 (Aux servo 1 at 180 degree angle)
 
-*/
 //Serial Read stuff
 const byte numChars = 8;
 char receivedChars[numChars]; // an array to store the received data
@@ -295,7 +296,42 @@ void rotateBStop()
   motorBRunning=false; 
 
 }
-
+void attachdetachservoW(char attachordetach)
+{
+ if (attachordetach=='a'){myservoW.attach(pinSERVOW);
+ Serial.print("<w-a:OK>");
+ }
+ if (attachordetach=='d'){myservoW.detach();
+  Serial.print("<w-d:OK>");
+ }
+  }
+void attachdetachservoX(char attachordetach)
+{
+ if (attachordetach=='a'){myservoX.attach(pinSERVOX);
+  Serial.print("<x-a:OK>");
+ }
+ if (attachordetach=='d'){myservoX.detach();
+  Serial.print("<x-d:OK>");
+ }
+  }
+void attachdetachservoY(char attachordetach)
+{
+ if (attachordetach=='a'){myservoY.attach(pinSERVOY);
+  Serial.print("<y-a:OK>");
+ }
+ if (attachordetach=='d'){myservoY.detach();
+  Serial.print("<y-d:OK>");
+ }
+  }
+void attachdetachservoZ(char attachordetach)
+{
+ if (attachordetach=='a'){myservoZ.attach(pinSERVOZ);
+  Serial.print("<z-a:OK>");
+ }
+ if (attachordetach=='d'){myservoZ.detach();
+  Serial.print("<z-d:OK>");
+ }
+  }
 void moveauxservoW(char *angle){
   int myServoAngle=atoi(angle);
     myservoW.write(myServoAngle);
@@ -703,7 +739,10 @@ void showNewData() {
         if(receivedChars[0]=='N'){togglesiren(receivedChars[2]);}
         if(receivedChars[0]=='0'){sendcounter0value(receivedChars[2]);}
         if(receivedChars[0]=='1'){sendcounter1value(receivedChars[2]);}
-        if(receivedChars[0]=='D'){obstacle();}
+        if(receivedChars[0]=='w'){attachdetachservoW(receivedChars[2]);}
+        if(receivedChars[0]=='x'){attachdetachservoX(receivedChars[2]);}
+        if(receivedChars[0]=='y'){attachdetachservoY(receivedChars[2]);}
+        if(receivedChars[0]=='z'){attachdetachservoZ(receivedChars[2]);}        
         newData = false;
     }
 }
@@ -718,11 +757,7 @@ void setup()
     Serial.print("<I2C Failed>");
 
 
-//Attach servos to A1, A2 , A3 & D4
-myservoW.attach(pinSERVOW);
-myservoX.attach(pinSERVOX);
-myservoY.attach(pinSERVOY);
-myservoZ.attach(pinSERVOZ);
+
 
 // HR-SC04
 //Define inputs and outputs

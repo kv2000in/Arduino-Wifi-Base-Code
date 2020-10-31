@@ -1,5 +1,27 @@
 <!DOCTYPE html>
 <!--
+/*
+OC0 A PD6 D6 Timer 0 980 Hz PWM with analogwrite(). Timer 0 is used for delay and millis().
+OC0 B PD5 D5 Timer 0 980 Hz PWM with analogwrite(). Timer 0 is used for delay and millis().
+
+OC1A  PB1 D9 490 Hz PWM with analogwrite(). Timer 1. Can't use Timer 1 if using Servo library
+OC1B  PB2 D10 490 Hz PWM with analogwrite(). Timer 1. Can't use Timer 1 if using Servo library
+
+OC2A PB3 D11 490 Hz PWM with analogwrite(). Timer 2.
+OC2B PD3 D3 490 Hz PWM with analogwrite(). Timer 2. D3 is also INT 1 (hardware interrupt).
+
+PD2 D2 INT0
+PD3 D3 INT1 (and see above)
+
+A4 SDA for i2c NEED TO BE PULLED UP BY EXTERNAL 4.7K RESISTORS TO VCC
+A5 SCL for i2c NEED TO BE PULLED UP BY EXTERNAL 4.7K RESISTORS TO VCC
+
+Can use analog pins as outputs to drive servos using  servo library.
+When using  analog functions, the pins are numbered 0-5. but these same pins are numbered 14-19 when used with digital functions.
+
+Servo 50 Hz PWM - Period = 1/50 S = 20 ms.
+1 ms High, 19 ms Low - Full left, 1.5 ms High, 18.5 ms Low - middle, 2 ms High, 18 ms Low - full right.
+
 C-F Forward Motor A Returns C-F:OK
 C-f forward Motor B
 C-R Reverse A
@@ -29,12 +51,20 @@ X-135 sets servo X to 135 degrees, returns X-135:OK
 Y-135 sets servo Y to 135 degrees, returns Y-135:OK
 Z-135 sets servo Z to 135 degrees, returns Z-135:OK
 
+w-a attach servoW returns w-a:OK
+w-d detach servoW returns w-d:OK
+x-a attach servoX
+x-d detach servoX
+y-a attach servoY
+y-d detach servoY
+z-a attach servoZ
+z-d detach servoZ
+
 K-N LEDs turn on Returns K-N:OK
 K-O LEDs turn off Returns K-O:OK
 
 N-N Siren turn on Returns N-N:OK
 N-O Siren turn off Returns N-O:OK
-
 
 D-X returns distance read by HCSR04 as D-124:OK
 
@@ -42,6 +72,7 @@ D-X returns distance read by HCSR04 as D-124:OK
 1-X returns counter1 value as 1-2344:OK
 0-0 sets counter0 to 0 and returns 0-0:OK
 1-0 sets counter1 to 0 and returns 1-0:OK
+*/
 
 
 -->
@@ -736,6 +767,10 @@ function response_based_on_first_char(mylocalvar){
 }
 
 
+function attachordetachservos(whichservo,attachordetach){
+    doSend("<"+whichservo+"-"+attachordetach+">");
+    
+}
         
 /*function handleOrientation(event) {
   var y = event.gamma;
@@ -955,6 +990,7 @@ var servoZmaxangle = 150;
 var servoZminangle = 30;
 var servoZanglesteps = 5;
 
+
         
 mysliderA.addEventListener('touchmove',function(event){
    var whatpercentslide = sliderbasefunction(event,this,"A");
@@ -992,7 +1028,19 @@ mysliderB.addEventListener('touchmove',function(event){
 },passiveSupported
                                ? { passive: true } : false);     
         
- 
+
+mysliderX.addEventListener('touchstart',function(event){
+  
+        attachordetachservos("x","a");
+    
+},passiveSupported
+                               ? { passive: true } : false);
+mysliderX.addEventListener('touchend',function(event){
+  
+        attachordetachservos("x","d");
+    
+},passiveSupported
+                               ? { passive: true } : false);
 mysliderX.addEventListener('touchmove',function(event){
    var whatpercentslide = sliderbasefunction(event,this,"X");
    
@@ -1008,6 +1056,18 @@ mysliderX.addEventListener('touchmove',function(event){
    
 },passiveSupported
                                ? { passive: true } : false); 
+mysliderY.addEventListener('touchstart',function(event){
+  
+        attachordetachservos("y","a");
+    
+},passiveSupported
+                               ? { passive: true } : false);
+mysliderY.addEventListener('touchend',function(event){
+  
+        attachordetachservos("y","d");
+    
+},passiveSupported
+                               ? { passive: true } : false);
 mysliderY.addEventListener('touchmove',function(event){
    var whatpercentslide = sliderbasefunction(event,this,"Y");
    
@@ -1023,6 +1083,18 @@ mysliderY.addEventListener('touchmove',function(event){
   
 },passiveSupported
                                ? { passive: true } : false); 
+mysliderZ.addEventListener('touchstart',function(event){
+  
+        attachordetachservos("z","a");
+    
+},passiveSupported
+                               ? { passive: true } : false);
+mysliderZ.addEventListener('touchend',function(event){
+  
+        attachordetachservos("z","d");
+    
+},passiveSupported
+                               ? { passive: true } : false);
 mysliderZ.addEventListener('touchmove',function(event){
    var whatpercentslide = sliderbasefunction(event,this,"Z");
 
@@ -1078,6 +1150,11 @@ function doConnect()
                         doSend("<A-A>"); //Send adjust PWM  on connecting }
                                   
                     }
+                //attach the steeringservo
+            
+            attachordetachservos("w","a");
+            
+            
             }
 																							 
 																				
@@ -1085,12 +1162,12 @@ function doConnect()
             { 
             iswebsocketconnected=false;
             console.log('websock close'); 
-            //clear all the intervals
+            //clear all the intervals - doesn't work. still dealing with "ghost" setIntervals
             clearInterval(recurringbatteryinfo);
             clearInterval(checkingobstacle);
             clearInterval(checkingrpmA);
             clearInterval(checkingrpmB);
-		
+		      
             }
         websock.onerror = function(evt) 
             {
@@ -1107,6 +1184,9 @@ function doConnect()
 
 function doClose()
 {
+    //detach steering servo
+    attachordetachservos("w","d");
+    
     websock.close();
 }
 function doSend(message)
