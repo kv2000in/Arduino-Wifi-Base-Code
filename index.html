@@ -79,7 +79,7 @@ D-X returns distance read by HCSR04 as D-124:OK
 
 <html>
 	<head>
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
         <link rel="manifest" href="manifest.json">    
         <style>
 				
@@ -624,33 +624,33 @@ function handlereturnsfromcommands(whichcommand){
     switch(whichcommand){
         case("F"):
             //Motor A is rotating forward, change the status light and calculate RPM/Speed if RPM is enabled 
-            checkrpm("0","0");
-            checkingrpmA = setInterval(checkrpm,checkrpminterval,"0","X");
-            handleobstacle("start");
+            //checkrpm("0","0");
+            //checkingrpmA = setInterval(checkrpm,checkrpminterval,"0","X");
+            //handleobstacle("start");
             break;
         case("f"):
             //Motor B is rotating forward, change the status light and calculate RPM/Speed if RPM is enabled
-            checkrpm("1","0");
-            checkingrpmB = setInterval(checkrpm,checkrpminterval,"1","X");
+            //checkrpm("1","0");
+            //checkingrpmB = setInterval(checkrpm,checkrpminterval,"1","X");
             break;
         case("R"):
             //Motor A is rotating reverse, change the status light and calculate RPM/Speed if RPM is enabled
-            checkrpm("0","0");
-            checkingrpmA = setInterval(checkrpm,checkrpminterval,"0","X");
+            //checkrpm("0","0");
+            //checkingrpmA = setInterval(checkrpm,checkrpminterval,"0","X");
             break;
         case("r"):
             //Motor B is rotating reverse, change the status light and calculate RPM/Speed if RPM is enabled
-            checkrpm("1","0");
-            checkingrpmB = setInterval(checkrpm,checkrpminterval,"1","X");
+            //checkrpm("1","0");
+            //checkingrpmB = setInterval(checkrpm,checkrpminterval,"1","X");
             break;
         case("X"):
             //Motor A is stopped change the status light and disable RPM
-            clearInterval(checkingrpmA);
-            handleobstacle("end");
+            //clearInterval(checkingrpmA);
+            //handleobstacle("end");
             break;
         case("x"):
             //Motor B is stopped, change the status light and disable RPM.
-            clearInterval(checkingrpmB);
+            //clearInterval(checkingrpmB);
             break;
         default:
         console.log(whichcommand);

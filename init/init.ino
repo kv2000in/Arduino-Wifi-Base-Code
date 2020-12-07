@@ -201,8 +201,8 @@ Servo myservoW,myservoX,myservoY,myservoZ;
 #define pinSERVOZ 4  //Atmega pin PD4 
 
 //Lights and Sounds Pins
-#define pinLIGHTS 6
-#define pinSIREN 11
+#define pinLIGHTS 11 //using 6 for PWM
+//#define pinSIREN 11
 
 //Analog ADC pin for checking battery voltage
 #define pinBATTERY A0
@@ -377,18 +377,18 @@ void toggleledlights(char onoroff)
  
 } 
 //Toggle Siren
-void togglesiren(char onoroff)
-{
-  if(onoroff=='O'){
-    digitalWrite(pinSIREN,LOW);
-    Serial.print("<N-O:OK>");
-    }
-  if(onoroff=='N'){
-    digitalWrite(pinSIREN,HIGH);
-    Serial.print("<N-N:OK>");
-    }
- 
-} 
+//void togglesiren(char onoroff)
+//{
+//  if(onoroff=='O'){
+//    digitalWrite(pinSIREN,LOW);
+//    Serial.print("<N-O:OK>");
+//    }
+//  if(onoroff=='N'){
+//    digitalWrite(pinSIREN,HIGH);
+//    Serial.print("<N-N:OK>");
+//    }
+// 
+//} 
 
 
 /*******************i2c smbus functions*********************/
@@ -736,13 +736,14 @@ void showNewData() {
         if(receivedChars[0]=='Y'){moveauxservoY(receivedChars+2);}
         if(receivedChars[0]=='Z'){moveauxservoZ(receivedChars+2);}
         if(receivedChars[0]=='K'){toggleledlights(receivedChars[2]);}
-        if(receivedChars[0]=='N'){togglesiren(receivedChars[2]);}
+//        if(receivedChars[0]=='N'){togglesiren(receivedChars[2]);}
         if(receivedChars[0]=='0'){sendcounter0value(receivedChars[2]);}
         if(receivedChars[0]=='1'){sendcounter1value(receivedChars[2]);}
         if(receivedChars[0]=='w'){attachdetachservoW(receivedChars[2]);}
         if(receivedChars[0]=='x'){attachdetachservoX(receivedChars[2]);}
         if(receivedChars[0]=='y'){attachdetachservoY(receivedChars[2]);}
-        if(receivedChars[0]=='z'){attachdetachservoZ(receivedChars[2]);}        
+        if(receivedChars[0]=='z'){attachdetachservoZ(receivedChars[2]);} 
+        if(receivedChars[0]=='D'){obstacle();}      
         newData = false;
     }
 }
@@ -790,7 +791,7 @@ digitalWrite(pinINB2,LOW);
 
 //Lights and Siren GPIO pins
 pinMode(pinLIGHTS,OUTPUT);
-pinMode(pinSIREN,OUTPUT);
+//pinMode(pinSIREN,OUTPUT);
 
 //Check battery voltage and set the max and min PWM (to protect the 6 V motor. As battery gets used up and voltage drops, JS client will adjust this value
 adjustPWM('A'); // A for analog, read the ADC. D for digital - get it from the smbus.
