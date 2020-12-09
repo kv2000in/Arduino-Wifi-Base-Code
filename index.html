@@ -450,17 +450,15 @@ overflow: auto;
                     </button>
 
                     </div>
-                    
-                    <div class="three-lights" id="gear-lights">
-                        <div class="individual-status-lights" id = "lightforwardA">F</div>
-                        <div class="individual-status-lights" id = "lightstopA">X</div>
-                        <div class="individual-status-lights" id = "lightreverseA">R</div>
-                    </div>
+                                   <div class="slidercolumn" id="slidercolumnA"><button class = "sliderbuttons" id="speedcontrolA">
+                    S
+                    </button></div>
+
                 </div>
                 <div class="twenty verticalslider" id = "bottom-left">
-                    <div class="slidercolumn" id="slidercolumnA"><button class = "sliderbuttons" id="speedcontrolA">
-                    S
-                    </button></div><div class="fuelgaugecolumn"><div class="fuelgaugecolumnstatus" id = "motorAspeed"></div></div>
+                    <div class="sendcommand" id="sendcommand">
+                    <input type="text" id="mycommands"><button id="sendcommandbutton" class="genericbutton" onclick= 'sendcommandfromtext()'>Send</button>
+                    </div><div class="fuelgaugecolumn"><div class="fuelgaugecolumnstatus" id = "motorAspeed"></div></div>
                                         
                 
                 </div>
@@ -499,7 +497,8 @@ overflow: auto;
 
         
         
-        var PWMAMAX;
+        //var PWMAMAX;
+        var PWMAMAX=255; //changed to allow for max PWM output.
         var PWMBMAX;
         var PWMAMIN;
         var PWMBMIN;
@@ -525,23 +524,24 @@ overflow: auto;
         var checkingrpmB;
         var checkingobstacle;
 
+
+        
+function sendcommandfromtext(){
+    
+    doSend(document.getElementById("mycommands").value);
+}
+        
 function getbatteryinfo(){
-            smartbattery=document.getElementById("isitasmartbattery").checked;
-            if(smartbattery){
                 doSend("<B-V>");
                 doSend("<B-I>");
                 doSend("<B-T>");
                 doSend("<B-C>");
                 doSend("<B-R>");
-                doSend("<B-F>");
-                
-            }
-            else {
-                
+                doSend("<B-F>");    
                 doSend("<b-V>");
                 
             }
-        }
+        
     
 
 function parse_incoming_websocket_messages(data){
@@ -665,7 +665,7 @@ function response_based_on_first_char(mylocalvar){
     {
         //PWMAMAX
         case ("H"):
-            PWMAMAX=Number(mylocalvar.split("-")[1]);
+            //PWMAMAX=Number(mylocalvar.split("-")[1]);
             break;
         //PWMBMAX
         case ("h"):
@@ -818,7 +818,7 @@ window.addEventListener('deviceorientation', handleOrientation);
     var myangle;
     var steeringanlgesteps =5;	
     var previoussentangle=0;
-    var steeringrange=100; //50 degrees left and 50 degrees right.
+    var steeringrange=60; //30 degrees left and 50 degrees right.
     var steeringservomidangle=90;
     var steeringservomaxangle = 170; //don't go out of bounds else cheap servo can stall.
     var steeringservominangle = 10;
