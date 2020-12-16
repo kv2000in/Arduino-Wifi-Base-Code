@@ -21,6 +21,7 @@
 		2A1D31E8252AE02E005AAC71 /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
 		2A1D31E92533CE41005AAC71 /* script.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = script.js; sourceTree = "<group>"; };
 		2A1D31EA253A98CD005AAC71 /* manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = manifest.json; sourceTree = "<group>"; };
+		2A4E045B2586CAB1004FEA4D /* esp-train-control.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "esp-train-control.html"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -33,6 +34,7 @@
 				2A1D31E8252AE02E005AAC71 /* index.html */,
 				2A1D31DD25279ED9005AAC71 /* ESP-Serial-Documentation.txt */,
 				2A1D31DC25279ED9005AAC71 /* index-train.html */,
+				2A4E045B2586CAB1004FEA4D /* esp-train-control.html */,
 				2A1D31DE25279ED9005AAC71 /* index-height.html */,
 				2A1D31E2252947DA005AAC71 /* index-opticalencoder.html */,
 				2A1D31E425295578005AAC71 /* Cam_n_control.html */,

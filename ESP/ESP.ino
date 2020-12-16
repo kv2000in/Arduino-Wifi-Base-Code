@@ -169,15 +169,22 @@ overflow: auto;
             .sliderbuttons
             {
                 position: absolute;
-                bottom:0%;
+                bottom:40%;
                 width:100%;
                 height:20%;
             }
             .slidercolumn
             {
-                width:49%;
+                width:100%;
                     height:100%;
                 position: relative;
+            }
+            .servosliderbuttons
+            {
+                position: absolute;
+                bottom:0%;
+                width:100%;
+                height:20%;
             }
             .fuelgaugecolumn
             {
@@ -238,6 +245,14 @@ overflow: auto;
                 {
                    width:20%;
                 }
+                .ten
+                {
+                   width:10%;
+                }
+                .fifty
+                {
+                   width:50%;
+                }
                 .sixty
                 {
                     width:60%;
@@ -286,7 +301,7 @@ overflow: auto;
             .genericbuttons{
                 
                     height: 100%;
-    width: 24%;
+   
     border-radius: 10%;
             }
                 .vertical2slider
@@ -365,7 +380,7 @@ overflow: auto;
                 
                 .three-slider
                 {
-                    width:49%;
+                    width:100%;
                     height:100%;
 \
                 }
@@ -376,6 +391,65 @@ overflow: auto;
                     background: red;
                  
                 }
+            
+            
+            .switch {
+          position: relative;
+          display: inline-block;
+          width: 60px;
+          height: 34px;
+        }
+        .svrlight{
+          background-color: red;
+        }
+        .switch input {display:none;}
+        .pwrlight{
+          position: relative;
+          height: 26px;
+          width: 26px;
+
+        }
+        .pwrlight:active{
+          background-color: red;
+          border: none;
+        }
+        .slider {
+          position: absolute;
+          cursor: pointer;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: #bf1f1f;
+          -webkit-transition: .4s;
+          transition: .4s;
+        }
+        
+        .slider:before {
+          position: absolute;
+          content: "";
+          height: 26px;
+          width: 26px;
+          left: 4px;
+          bottom: 4px;
+          background-color: white;
+          -webkit-transition: .4s;
+          transition: .4s;
+        }
+        
+        input:checked + .slider {
+          background-color: #2196F3;
+        }
+        
+        input:focus + .slider {
+          box-shadow: 0 0 1px #2196F3;
+        }
+        
+        input:checked + .slider:before {
+          -webkit-transform: translateX(26px);
+          -ms-transform: translateX(26px);
+          transform: translateX(26px);
+        }
       </style>
       
       <title>myRover</title>
@@ -390,8 +464,7 @@ overflow: auto;
         <div class="notification-bar" id="notification">
             <div class = "console" id = "mylocalconsole"></div>
             <div class="selectables">
-                <label class="genericlabel">SmartBattery</label>
-            <input type="checkbox" id = "isitasmartbattery" onchange="getbatteryinfo">
+
             </div>
             <div class="smbusnumericals numericals" id = "smbusbatteryI"></div>
             <div class="smbusnumericals numericals" id = "smbusbatteryV"></div>
@@ -404,7 +477,7 @@ overflow: auto;
         </div>    
         <div class ="half" id="top-half">
 
-                <div class="twenty vertical3slider" id = "top-left-1" id="gearB">
+                <div class="ten vertical3slider" id = "top-left-1" id="gearB">
             
                             <div class = "three-slider" id="gearBslider">
 
@@ -422,49 +495,60 @@ overflow: auto;
 
                     </div>
                     
-                    <div class="three-lights" id="gear-lights">
-                        <div class="individual-status-lights" id = "lightforwardB">F</div>
-                        <div class="individual-status-lights" id = "lightstopB">X</div>
-                        <div class="individual-status-lights" id = "lightreverseB">R</div>
-                    </div>
+
             
             
             
             </div>
-                            <div class="twenty vertical2slider" id = "top-left-2">                                       
+                            <div class="ten vertical2slider" id = "top-left-2">                                       
                                         <div class="slidercolumn" id="slidercolumnB"><button class = "sliderbuttons" id="speedcontrolB">
                     S
-                    </button></div><div class="fuelgaugecolumn"><div class="fuelgaugecolumnstatus" id = "motorBspeed">             </div></div>
+                    </button></div>
                                         
                 
             
             </div>
                 
-            <div class="twenty vertical2slider" id = "top-left-3">
-                    <div class="slidercolumn" id="slidercolumnX"><button class = "sliderbuttons" id="speedcontrolX">
+            <div class="ten vertical2slider" id = "top-left-3">
+                    <div class="slidercolumn servoslidercolumn" id="slidercolumnX"><button class = "servosliderbuttons" id="speedcontrolX">
                     X
-                    </button></div><div class="fuelgaugecolumn"><div class="fuelgaugecolumnstatus" id = "motorXspeed"></div></div>
+                    </button></div>
             </div>
-                <div class="twenty vertical2slider" id = "top-left-4">
-                                <div class="slidercolumn" id="slidercolumnY"><button class = "sliderbuttons" id="speedcontrolY">
+                <div class="ten vertical2slider" id = "top-left-4">
+                                <div class="slidercolumn servoslidercolumn" id="slidercolumnY"><button class = "servosliderbuttons" id="speedcontrolY">
                     Y
-                    </button></div><div class="fuelgaugecolumn"><div class="fuelgaugecolumnstatus" id = "motorYspeed"></div></div>
+                    </button></div>
             </div>
-                <div class="twenty vertical2slider" id = "top-left-5">
-                                <div class="slidercolumn" id="slidercolumnZ"><button class = "sliderbuttons" id="speedcontrolZ">
+                <div class="ten vertical2slider" id = "top-left-5">
+                                <div class="slidercolumn servoslidercolumn" id="slidercolumnZ"><button class = "servosliderbuttons" id="speedcontrolZ">
                     Z
-                    </button></div><div class="fuelgaugecolumn"><div class="fuelgaugecolumnstatus" id = "motorZspeed"></div></div>
+                    </button></div>
             </div>
-            </div>
-            <div class ="half bottom" id="bottom-half">
-
-                <div class="sixty" id = "bottom-middle"><div class="horizontalslider">  <button class = "genericbuttons" id="connectWS" onclick='doConnect()'>
+            <div class = "fifty">     <!-- pwrlight01 = pwrlight server 0 and gpio 1-->
+      <button class="pwrlight" id = "pwrlight"></button> 
+      <label class="switch">
+        <input type="checkbox" id="lightswitch" onclick='togglelightswitch()'>
+          <div class="slider"></div>
+      </label>
+                
+                 <button class = "genericbuttons" id="connectWS" onclick='doConnect()'>
                     Connect
                     </button>
             <button class = "genericbuttons" id="closeWS" onclick='doClose()'>
                     Close
-                    </button>  <button class ="genericbuttons" id = "trimset" onclick="setmidsteeringangle()">Trim</button>
-                          <button class ="genericbuttons" id = "gotomiddle" onclick="gotosteeringmidposition()">Mid</button> </div>
+                    </button> 
+                            <button class = "genericbuttons" id="reloadfromsource" onclick='location.reload()'>
+                    Reload
+                    </button> 
+                                            <button class = "genericbuttons" id="getbatteryinforbtn" onclick='getbatteryinfo'>
+                    Battery
+                    </button> 
+       </div>
+            </div>
+            <div class ="half bottom" id="bottom-half">
+
+                <div class="sixty" id = "bottom-middle"><div class="horizontalslider">  <button class ="genericbuttons" id = "lefttrimset" onclick="setmidsteeringangle('left')">Trim L</button>
+                          <button class ="genericbuttons" id = "righttrimset" onclick="setmidsteeringangle('right')">Trim R</button> </div>
                     <div class="steering-container" id="steering-container">
                 <div class="steering-outer-circle" id="steering-outer-circle">
 <!--                            <div class="steering-inner-circle" id="steering-inner-circle"></div>-->
@@ -476,30 +560,33 @@ overflow: auto;
                </div>
                 </div>
                 <div class="twenty vertical3slider" id = "gearA">
-                <div class = "three-slider" id="gearAslider">
 
-                    
-                    <button class = "gearbuttons" id="forwardgearbuttonA" onclick='doSend("<C-F>")'>
-                    F
-                    </button>
-                    
-                    <button class = "gearbuttons" id="stopgearbuttonA" onclick='doSend("<C-X>")'>
-                    X
-                    </button>
-                    <button class = "gearbuttons" id="reversegearbuttonA" onclick='doSend("<C-R>")'>
-                    R
-                    </button>
-
-                    </div>
                                    <div class="slidercolumn" id="slidercolumnA"><button class = "sliderbuttons" id="speedcontrolA">
                     S
                     </button></div>
 
                 </div>
+                
                 <div class="twenty verticalslider" id = "bottom-left">
                     <div class="sendcommand" id="sendcommand">
-                    <input type="text" id="mycommands"><button id="sendcommandbutton" class="genericbutton" onclick= 'sendcommandfromtext()'>Send</button>
-                    </div><div class="fuelgaugecolumn"><div class="fuelgaugecolumnstatus" id = "motorAspeed"></div></div>
+                    <input list = "availablecommands"  id="mycommands"><button id="sendcommandbutton" class="genericbutton" onclick= 'sendcommandfromtext()'>Send</button>
+                        
+    <datalist id="availablecommands">
+    <option value="<0-X>">
+    <option value="<1-X>">
+    <option value="<0-0>">
+    <option value="<1-0>">
+    <option value="<D-X>">
+    <option value="<N-N>">
+    <option value="<N-O>">
+    <option value="<K-N>">
+    <option value="<K-O>">
+    <option value="<B-O>">
+    <option value="<B-V>">
+    <option value="<b-V>">
+    
+  </datalist>
+                    </div>
                                         
                 
                 </div>
@@ -509,7 +596,7 @@ overflow: auto;
     
     
     
-    
+    <div class = "detailedlistofcommands"><!--todo!--></div>
     
   </body>
   
@@ -541,12 +628,12 @@ overflow: auto;
         //var PWMAMAX;
         var PWMAMAX=255; //changed to allow for max PWM output.
         var PWMBMAX;
-        var PWMAMIN;
+        var PWMAMIN=155; //since using 7.5 V regulated - easier to just set this manually. 
         var PWMBMIN;
         var PWMA;
         var PWMB;
-        var PWMASTEPS = 5;
-        var PWMBSTEPS = 5;
+        var PWMASTEPS = 25;
+        var PWMBSTEPS = 25;
         var previousY =0;
         var smartbattery;
         var rpmenabled = true;
@@ -700,6 +787,16 @@ function handlereturnsfromcommands(whichcommand){
     
 }
 
+function togglelightswitch()
+        {
+            var myswitch=document.getElementById("lightswitch");
+            if (myswitch.checked){
+                doSend("<K-N>");
+            }
+                       else {
+                       doSend("<K-O>");
+                       }
+        }        
 function response_based_on_first_char(mylocalvar){
     //mylocalvar = S-255 or C-F or H-135 etc , see above
     switch(mylocalvar.split("-")[0])
@@ -714,7 +811,7 @@ function response_based_on_first_char(mylocalvar){
             break;
         //PWMAMIN    
         case ("L"):
-            PWMAMIN=Number(mylocalvar.split("-")[1]);
+            //PWMAMIN=Number(mylocalvar.split("-")[1]);
             break;
         //PWMBMIN    
         case ("l"):
@@ -782,7 +879,9 @@ function response_based_on_first_char(mylocalvar){
             break;
         //Truck light Leds
         case ("K"):
-            document.getElementById("mylocalconsole").innerHTML=mylocalvar;
+            
+            if (mylocalvar.split("-")[1] == "N"){document.getElementById("pwrlight").style.backgroundColor="red";}
+            if (mylocalvar.split("-")[1] == "O"){document.getElementById("pwrlight").style.backgroundColor="white";}
             break;
         //Truck siren
         case ("N"):
@@ -859,7 +958,7 @@ window.addEventListener('deviceorientation', handleOrientation);
     var myangle;
     var steeringanlgesteps =5;  
     var previoussentangle=0;
-    var steeringrange=60; //30 degrees left and 50 degrees right.
+    var steeringrange=65; //32.5 degrees left and 32.5 degrees right.
     var steeringservomidangle=90;
     var steeringservomaxangle = 170; //don't go out of bounds else cheap servo can stall.
     var steeringservominangle = 10;
@@ -938,12 +1037,14 @@ window.addEventListener('deviceorientation', handleOrientation);
                         },passiveSupported
                                ? { passive: true } : false);          
 
-function setmidsteeringangle(){
-    if(myangle){
-    steeringservomidangle = myangle;
-    draggable.style.left = '100px';
-    draggable.style.top = '-50px';
+function setmidsteeringangle(trimwhichway){
+
+    if (trimwhichway=="left"){
+    steeringservomidangle = steeringservomidangle-5;
+    } else if (trimwhichway=="right"){
+    steeringservomidangle = steeringservomidangle+5;
     }
+    document.getElementById("mylocalconsole").innerHTML="Mid="+steeringservomidangle;
 }
 function gotosteeringmidposition(){
     draggable.style.left = '100px';
@@ -1030,15 +1131,63 @@ var servoYanglesteps = 5;
 var servoZmaxangle = 150;
 var servoZminangle = 30;
 var servoZanglesteps = 5;
-
-
+var motorAmovingforward=false;
+var motorAmoving=false;
         
 mysliderA.addEventListener('touchmove',function(event){
    var whatpercentslide = sliderbasefunction(event,this,"A");
     
-     valuetosendA= Math.round(PWMAMIN+((PWMAMAX-PWMAMIN)*(whatpercentslide/100)));
-     //console.log("whatpercentslide = "+whatpercentslide+ "valuetosend ="+valuetosend+"PWMAMAX = "+PWMAMAX+ "PWMAMIN = "+PWMAMIN);
-   if (Math.abs(valuetosendA-mypreviousPWMAsent)>Number(PWMASTEPS)){
+    //if slider is between 60-100% - move forward with increasing speed. 
+    //if slider is between 40-0% - move backwards with increasing speed.
+    //if slider is between 40-60% - stop.
+   
+    if(!motorAmoving)
+    {
+        
+    
+    if (whatpercentslide<40){
+    
+        motorAmoving=true;
+        motorAmovingforward=false;
+        doSend("<C-R>");
+        
+        
+    } else if (whatpercentslide>60) {
+        
+        motorAmoving=true;
+        motorAmovingforward=true;
+        doSend("<C-F>");
+            
+    }
+    else{
+        
+        
+    }
+
+        
+    }
+    
+    else {
+        //motorA is moving and we cross midline, wishing to change the direction
+        if (whatpercentslide<40){
+    
+        if(motorAmovingforward){
+        doSend("<C-R>");
+        motorAmovingforward=false;
+        }
+    } else if (whatpercentslide>60) {
+        
+        if(!motorAmovingforward){
+        doSend("<C-F>");
+        motorAmovingforward=true;
+        }   
+    }
+        
+    }
+    
+     valuetosendA= Math.round(PWMAMIN+((PWMAMAX-PWMAMIN)*((Math.abs(50-whatpercentslide)*2)/100)));
+      
+    if (Math.abs(valuetosendA-mypreviousPWMAsent)>Number(PWMASTEPS)){
     
         
     doSend("<S-"+valuetosendA+">");
@@ -1051,6 +1200,15 @@ mysliderA.addEventListener('touchmove',function(event){
                                ? { passive: true } : false);
 
     
+//when releasing speedcontrol button - it returns to mid position and motor stops.
+mysliderA.addEventListener('touchend',function(event){
+        motorAmoving=false;
+        doSend("<C-X>");
+        doSend("<S-"+PWMAMIN+">");
+        mysliderA.style.top=40+'%';
+    
+},passiveSupported
+                               ? { passive: true } : false);
         
 mysliderB.addEventListener('touchmove',function(event){
    var whatpercentslide = sliderbasefunction(event,this,"B");
