@@ -363,6 +363,10 @@ void moveauxservoZ(char *angle){
     Serial.print(":OK>");
   }
 
+void servoslowrotate(char *angle){
+  int myServoAngle=atoi(angle);
+
+  }
 //Toggle LED LIGHTS
 void toggleledlights(char onoroff)
 {
