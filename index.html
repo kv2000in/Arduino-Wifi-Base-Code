@@ -60,8 +60,14 @@ y-d detach servoY
 z-a attach servoZ
 z-d detach servoZ
 
-K-N LEDs turn on Returns K-N:OK
-K-O LEDs turn off Returns K-O:OK
+K-N Head LEDs turn on Returns K-N:OK
+K-O Head LEDs turn off Returns K-O:OK
+
+O-N Tail LEDs turn on Returns K-N:OK
+O-O Tail LEDs turn off Returns K-O:OK
+
+P-N Emergency LEDs turn on Returns K-N:OK
+P-O Emergency LEDs turn off Returns K-O:OK
 
 N-N Siren turn on Returns N-N:OK
 N-O Siren turn off Returns N-O:OK
@@ -483,25 +489,41 @@ overflow: auto;
                     Z
                     </button></div>
             </div>
-            <div class = "fifty">			<!-- pwrlight01 = pwrlight server 0 and gpio 1-->
-			<button class="pwrlight" id = "pwrlight"></button> 
+            <div class = "fifty">
+                
+                <!-- headlight01 = headlight server 0 and gpio 1-->
+			<button class="pwrlight" id = "headlight"></button> 
 			<label class="switch">
-				<input type="checkbox" id="lightswitch" onclick='togglelightswitch()'>
+				<input type="checkbox" id="headlightswitch" onclick='toggleheadlightswitch()'>
 					<div class="slider"></div>
 			</label>
+                <br>
+                			<button class="pwrlight" id = "taillight"></button> 
+			<label class="switch">
+				<input type="checkbox" id="taillightswitch" onclick='toggletaillightswitch()'>
+					<div class="slider"></div>
+			</label>
+                <br>	
+                <button class="pwrlight" id = "emergencylight"></button> 
+			<label class="switch">
+				<input type="checkbox" id="emergencylightswitch" onclick='toggleemergencylightswitch()'>
+					<div class="slider"></div>
+			</label>
+                    
                 
-                 <button class = "genericbuttons" id="connectWS" onclick='doConnect()'>
+                 <button class = "controlbuttons" id="connectWS" onclick='doConnect()'>
                     Connect
                     </button>
-            <button class = "genericbuttons" id="closeWS" onclick='doClose()'>
+            <button class = "controlbuttons" id="closeWS" onclick='doClose()'>
                     Close
                     </button> 
-                            <button class = "genericbuttons" id="reloadfromsource" onclick='location.reload()'>
+                            <button class = "controlbuttons" id="reloadfromsource" onclick='location.reload()'>
                     Reload
                     </button> 
-                                            <button class = "genericbuttons" id="getbatteryinforbtn" onclick='getbatteryinfo'>
+                                            <button class = "controlbuttons" id="getbatteryinforbtn" onclick='getbatteryinfo'>
                     Battery
                     </button> 
+                   
 			 </div>
             </div>
             <div class ="half bottom" id="bottom-half">
@@ -540,6 +562,10 @@ overflow: auto;
     <option value="<N-O>">
     <option value="<K-N>">
     <option value="<K-O>">
+    <option value="<O-N>">
+    <option value="<O-O>">
+    <option value="<P-N>">
+    <option value="<P-O>">
     <option value="<B-O>">
     <option value="<B-V>">
     <option value="<b-V>">
@@ -746,16 +772,36 @@ function handlereturnsfromcommands(whichcommand){
     
 }
 
-function togglelightswitch()
+function toggleheadlightswitch()
         {
-            var myswitch=document.getElementById("lightswitch");
+            var myswitch=document.getElementById("headlightswitch");
             if (myswitch.checked){
                 doSend("<K-N>");
             }
                        else {
                        doSend("<K-O>");
                        }
-        }        
+        }  
+function toggletaillightswitch()
+        {
+            var myswitch=document.getElementById("taillightswitch");
+            if (myswitch.checked){
+                doSend("<O-N>");
+            }
+                       else {
+                       doSend("<O-O>");
+                       }
+        } 
+function toggleemergencylightswitch()
+        {
+            var myswitch=document.getElementById("emergencylightswitch");
+            if (myswitch.checked){
+                doSend("<P-N>");
+            }
+                       else {
+                       doSend("<P-O>");
+                       }
+        } 
 function response_based_on_first_char(mylocalvar){
     //mylocalvar = S-255 or C-F or H-135 etc , see above
     switch(mylocalvar.split("-")[0])
@@ -836,12 +882,25 @@ function response_based_on_first_char(mylocalvar){
         case ("O"):
             document.getElementById("mylocalconsole").innerHTML=mylocalvar;
             break;
-        //Truck light Leds
+        //Truck head light Leds
         case ("K"):
             
-            if (mylocalvar.split("-")[1] == "N"){document.getElementById("pwrlight").style.backgroundColor="red";}
-            if (mylocalvar.split("-")[1] == "O"){document.getElementById("pwrlight").style.backgroundColor="white";}
+            if (mylocalvar.split("-")[1] == "N"){document.getElementById("headlight").style.backgroundColor="red";}
+            if (mylocalvar.split("-")[1] == "O"){document.getElementById("headlight").style.backgroundColor="white";}
             break;
+        //Truck tail light Leds
+        case ("O"):
+            
+            if (mylocalvar.split("-")[1] == "N"){document.getElementById("taillight").style.backgroundColor="red";}
+            if (mylocalvar.split("-")[1] == "O"){document.getElementById("taillight").style.backgroundColor="white";}
+            break;
+        //Truck emergency light Leds
+        case ("P"):
+            
+            if (mylocalvar.split("-")[1] == "N"){document.getElementById("emergencylight").style.backgroundColor="red";}
+            if (mylocalvar.split("-")[1] == "O"){document.getElementById("emergencylight").style.backgroundColor="white";}
+            break;
+            
         //Truck siren
         case ("N"):
             document.getElementById("mylocalconsole").innerHTML=mylocalvar;

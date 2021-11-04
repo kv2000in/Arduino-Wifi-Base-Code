@@ -1,4 +1,5 @@
 /*
+ changelog for version 1.1 board nov 2021. usin A4 A5 for smbus, A4 for V battery (22k/10K) using D4, D11, A2, A0, A1 for servos, D9, D10, D11 can also be used as switches. (3 transistor switch options on board. 
 OC0 A PD6 D6 Timer 0 980 Hz PWM with analogwrite(). Timer 0 is used for delay and millis().
 OC0 B PD5 D5 Timer 0 980 Hz PWM with analogwrite(). Timer 0 is used for delay and millis().
 
@@ -188,8 +189,8 @@ D-X returns distance read by HCSR04 as D-124:OK
 #define pinINB2              13   //Atmega pin PB5 //also SCK for SPI
 
 //HCSR04 definitions
-#define pinTRIG   9 //Since using servo library - can't use PWM on D9-D10, Timer OC1A/B. Can probably still use it digital I/O pins.tested.seems to work
-#define pinECHO   10 
+//#define pinTRIG   9 //Since using servo library - can't use PWM on D9-D10, Timer OC1A/B. Can probably still use it digital I/O pins.tested.seems to work
+//#define pinECHO   10 
 long duration,distance;
 
 
@@ -197,15 +198,17 @@ long duration,distance;
 Servo myservoW,myservoX,myservoY,myservoZ;
 #define pinSERVOW 15 //A1
 #define pinSERVOX 16 //A2
-#define pinSERVOY 17 //A3
+#define pinSERVOY 14 //A0
 #define pinSERVOZ 4  //Atmega pin PD4 
-
+//#define pinSERVOz 11 //Atmega pin D11 hardwired as one of the servo pins but unsure if it can be used that way
 //Lights and Sounds Pins
-#define pinLIGHTS 11 //using 6 for PWM
+#define pinHLIGHTS 11 //using 6 for PWM, HEADLIGHTS
+#define pinTLIGHTS 9 //Not using 9,10 for HCSR04 for now TAILLIGHTS
+#define pinELIGHTS 10 //Not using 9,10 for HCSR04 for now EmergencyLIghts
 //#define pinSIREN 11
 
 //Analog ADC pin for checking battery voltage
-#define pinBATTERY A0
+#define pinBATTERY A3
 
 //Misc definitions
 //#define MAX_STRING_LEN  32
@@ -368,15 +371,41 @@ void servoslowrotate(char *angle){
 
   }
 //Toggle LED LIGHTS
-void toggleledlights(char onoroff)
+void toggleheadlights(char onoroff)
 {
   if(onoroff=='O'){
-    digitalWrite(pinLIGHTS,LOW);
+    digitalWrite(pinHLIGHTS,LOW);
     Serial.print("<K-O:OK>");
     }
   if(onoroff=='N'){
-    digitalWrite(pinLIGHTS,HIGH);
+    digitalWrite(pinHLIGHTS,HIGH);
     Serial.print("<K-N:OK>");
+    }
+ 
+} 
+//Toggle LED LIGHTS
+void toggletaillights(char onoroff)
+{
+  if(onoroff=='O'){
+    digitalWrite(pinTLIGHTS,LOW);
+    Serial.print("<O-O:OK>");
+    }
+  if(onoroff=='N'){
+    digitalWrite(pinTLIGHTS,HIGH);
+    Serial.print("<O-N:OK>");
+    }
+ 
+} 
+//Toggle LED LIGHTS
+void toggleemergencylights(char onoroff)
+{
+  if(onoroff=='O'){
+    digitalWrite(pinELIGHTS,LOW);
+    Serial.print("<P-O:OK>");
+    }
+  if(onoroff=='N'){
+    digitalWrite(pinELIGHTS,HIGH);
+    Serial.print("<P-N:OK>");
     }
  
 } 
@@ -526,7 +555,7 @@ int batteryinfo(char whichinfo){
     }
     return myvoltage;
   }
-
+/* not using HCSR04 for now, Nov 2021  
 //HCSR04 distance function
 void obstacle(){
   digitalWrite(pinTRIG, LOW);
@@ -541,7 +570,7 @@ void obstacle(){
   Serial.print(distance);
   Serial.print(":OK>");
   }  
-
+ not using HCSR04 for now, Nov 2021  */
 void sendcounter0value(char doizero)
 {
  if (doizero=='0'){
@@ -739,15 +768,17 @@ void showNewData() {
         if(receivedChars[0]=='X'){moveauxservoX(receivedChars+2);}
         if(receivedChars[0]=='Y'){moveauxservoY(receivedChars+2);}
         if(receivedChars[0]=='Z'){moveauxservoZ(receivedChars+2);}
-        if(receivedChars[0]=='K'){toggleledlights(receivedChars[2]);}
+        if(receivedChars[0]=='K'){toggleheadlights(receivedChars[2]);}
 //        if(receivedChars[0]=='N'){togglesiren(receivedChars[2]);}
+        if(receivedChars[0]=='O'){toggletaillights(receivedChars[2]);}
+        if(receivedChars[0]=='P'){toggleemergencylights(receivedChars[2]);}
         if(receivedChars[0]=='0'){sendcounter0value(receivedChars[2]);}
         if(receivedChars[0]=='1'){sendcounter1value(receivedChars[2]);}
         if(receivedChars[0]=='w'){attachdetachservoW(receivedChars[2]);}
         if(receivedChars[0]=='x'){attachdetachservoX(receivedChars[2]);}
         if(receivedChars[0]=='y'){attachdetachservoY(receivedChars[2]);}
         if(receivedChars[0]=='z'){attachdetachservoZ(receivedChars[2]);} 
-        if(receivedChars[0]=='D'){obstacle();}      
+        //if(receivedChars[0]=='D'){obstacle();}    //Not using HCSR04 , nov 2021  
         newData = false;
     }
 }
@@ -763,12 +794,12 @@ void setup()
 
 
 
-
+/*
 // HR-SC04
 //Define inputs and outputs
 pinMode(pinTRIG, OUTPUT);
 pinMode(pinECHO, INPUT);
- 
+ */
 //Interrupt pins
 pinMode(ENCODER0PINA, INPUT_PULLUP);
 pinMode(ENCODER1PINA, INPUT_PULLUP);
@@ -794,7 +825,9 @@ digitalWrite(pinINB1,LOW);
 digitalWrite(pinINB2,LOW);
 
 //Lights and Siren GPIO pins
-pinMode(pinLIGHTS,OUTPUT);
+pinMode(pinHLIGHTS,OUTPUT);
+pinMode(pinTLIGHTS,OUTPUT); //in lieu of HCSR04
+pinMode(pinELIGHTS,OUTPUT); //in lieu of HCSR04
 //pinMode(pinSIREN,OUTPUT);
 
 //Check battery voltage and set the max and min PWM (to protect the 6 V motor. As battery gets used up and voltage drops, JS client will adjust this value
