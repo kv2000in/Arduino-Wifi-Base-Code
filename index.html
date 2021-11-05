@@ -43,8 +43,8 @@ B-C SMBUS Relative State of Charge (%) Returns c-45:OK
 B-R SMBUS Remaining capacity (mAH) Returns R-3245:OK
 B-T SMBUS Battery Temperature (deg C) Returns T-13.2:OK
 B-F SMBUS Battery Full Capacity (mAH) Returns F-5245:OK
-B-O SMBUS Battery LED OFF Returns O-OFF:OK
-B-N SMBUS Battery LED ON Returns O-ON:OK
+B-O SMBUS Battery LED OFF Returns O-OFF:OK - Nov 2021 - need to change to B-O:OK
+B-N SMBUS Battery LED ON Returns O-ON:OK  Nov 2021 - need to change to B-N:OK
 
 W-135 sets servo W to 135 degrees, returns W-135:OK
 X-135 sets servo X to 135 degrees, returns X-135:OK
@@ -877,11 +877,13 @@ function response_based_on_first_char(mylocalvar){
         //Battery smbus full charge capacity (mAH)    
         case ("F"):
             document.getElementById("smbusbatteryF").innerHTML=mylocalvar.split("-")[1];
-            break;
+        break;
+        /* Using O below for lights
         //Battery SMBUS LED on or off    
         case ("O"):
             document.getElementById("mylocalconsole").innerHTML=mylocalvar;
             break;
+        */
         //Truck head light Leds
         case ("K"):
             
